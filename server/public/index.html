@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIP Search Tool</title>
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <h1>Software Intensive Product Search</h1>
+    
+    <div class="search-container">
+        <input type="text" 
+               id="searchInput" 
+               placeholder="Search products (e.g., 'Tesla' or 'Thermostat')">
+        <button onclick="searchProducts()">Search</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        async function searchProducts() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const resultsDiv = document.getElementById('results');
+            
+            if (!searchTerm) {
+                resultsDiv.innerHTML = '<p>Please enter a search term</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `http://localhost:4000/api/products/search?q=${encodeURIComponent(searchTerm)}`
+                );
+
+                // Check for HTTP errors
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Check for empty results using the correct property name
+                if (data.products.length === 0) {
+                    resultsDiv.innerHTML = `<p>No results found for "${searchTerm}"</p>`;
+                    return;
+                }
+
+                // Render results using the correct data structure
+                resultsDiv.innerHTML = data.products.map(product => `
+                    <div class="result-item">
+                        <h3>${product.name}</h3>
+                        <p class="category">${product.category} • ${product.manufacturer}</p>
+                        ${product.components && product.components.length ? `
+                            <p>Components: 
+                                ${product.components.map(c => c.name).join(', ')}
+                            </p>
+                        ` : ''}
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                resultsDiv.innerHTML = '<p>Error fetching results. Please try again.</p>';
+                console.error('Search error:', error);
+            }
+        }
+
+        // Enter key handler
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchProducts();
+        });
+    </script>
+</body>
+</html>
