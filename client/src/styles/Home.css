@@ -217,3 +217,26 @@
     flex-wrap: wrap;
     gap: 1rem;
   }
+
+  .categories-title {
+    text-align: center;
+    margin: 2rem 0;
+    color: #2d3436;
+  }
+  
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 0 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  @media (max-width: 768px) {
+    .categories-grid {
+      grid-template-columns: 1fr;
+      padding: 0 1rem;
+      gap: 1.5rem;
+    }
+  }

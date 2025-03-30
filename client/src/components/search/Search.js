@@ -6,8 +6,10 @@ const Search = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async () => {
+    setHasSearched(true);
     if (!searchTerm.trim()) {
       setError('Please enter a search term');
       return;
@@ -73,7 +75,7 @@ const Search = () => {
         ))}
       </div>
 
-      {results.length === 0 && !loading && !error && (
+      {hasSearched && results.length === 0 && !loading && !error && (
         <p className="no-results">No products found. Try a different search term.</p>
       )}
     </div>
