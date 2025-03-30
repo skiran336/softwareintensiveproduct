@@ -1,26 +1,29 @@
+// src/App.js
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Profile from './pages/Profile';
-import SearchResults from './pages/SearchResults';
-import ProtectedRoute from './components/auth/ProtectedRoute';
+import Login from './pages/Login/Login';
+import Home from './pages/Home/Home';
+import PrivateRoute from './components/PrivateRoute';
+import Signup from './pages/SignUp/SignUp';
+import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
+import Profile from './pages/Profile/Profile'
 import './styles/globals.css'
 
-// Add default export
-export default function App() {
+function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
+    <Router>
+      <AuthProvider>
+      <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<Home />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/search" element={<SearchResults />} />
-          </Route>
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
+
+export default App;

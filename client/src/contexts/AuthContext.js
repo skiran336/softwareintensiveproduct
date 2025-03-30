@@ -1,5 +1,5 @@
 // src/contexts/AuthContext.js
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 
 const AuthContext = createContext();
@@ -7,66 +7,163 @@ const AuthContext = createContext();
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [session, setSession] = useState(null);
 
-  // 1. Auth state initialization
+  // Sync user with Node.js backend
+  const syncUserWithBackend = useCallback(async (supabaseUser) => {
+    try {
+      if (!supabaseUser) return null;
+
+      const response = await fetch('http://localhost:4000/api/users/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          supabaseUserId: supabaseUser.id,
+          email: supabaseUser.email,
+          metadata: supabaseUser.user_metadata
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to sync user with backend');
+      }
+
+      return await response.json();
+    } catch (err) {
+      console.error('User sync error:', err);
+      return null;
+    }
+  }, []);
+
+  // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
+      try {
+        setLoading(true);
+        const { data: { session }, error } = await supabase.auth.getSession();
+
+        if (error) throw error;
+
+        if (session) {
+          setSession(session);
+          setUser(session.user);
+          await syncUserWithBackend(session.user);
+        }
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
     };
 
     initializeAuth();
 
-    // 2. Subscribe to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null);
-        setLoading(false);
-        
-        // Sync to MongoDB backend when user changes
-        if (session?.user) {
-          await fetch('/api/users/sync', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ supabaseUserId: session.user.id })
-          });
-        }
+      async (event, newSession) => {
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
       }
     );
 
     return () => subscription?.unsubscribe();
-  }, []);
+  }, [syncUserWithBackend]);
 
-  // 3. Authentication methods
-  const signUp = async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) throw error;
-    return data;
+  // Sign up with email and password
+  const signUp = async ({ email, password, metadata = {} }) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: metadata }
+      });
+
+      if (error) throw error;
+      if (data.user) await syncUserWithBackend(data.user);
+      return data;
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const resetPassword = async (email) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Sign in with email and password
   const signIn = async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    return data;
+    try {
+      setLoading(true);
+      setError(null);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
+  // Sign out
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-    setUser(null);
+    try {
+      setLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateUser = async (updates) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.auth.updateUser(updates);
+      if (error) throw error;
+      setUser(data.user);
+      return data;
+    } catch (error) {
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const value = {
     user,
+    session,
     loading,
+    error,
     signUp,
+    resetPassword,
     signIn,
-    signOut
+    signOut,
+    updateUser,
+    clearError: () => setError(null)
   };
-
-  // 4. Prevent rendering until auth state is loaded
-  if (loading) return <div>Loading authentication state...</div>;
 
   return (
     <AuthContext.Provider value={value}>

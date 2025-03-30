@@ -4,15 +4,17 @@ const morgan = require('morgan');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const productRoutes = require('./routes/productRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
 // Middleware
 app.use(express.static('public'));
 app.use(cors({
-    origin: 'http://localhost:4000', // Or your frontend origin
-    methods: ['GET', 'POST']
-  }));
+    origin: 'http://localhost:3000', // Should match your React app's port (usually 3000)
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add more methods as needed
+    credentials: true
+}));
 app.use(express.json());
 app.use(morgan('dev'));
 
@@ -21,6 +23,7 @@ connectDB();
 
 // Routes
 app.use('/api/products', productRoutes);
+app.use('/api/users', userRoutes);
 // In your Express.js route
 const axios = require('axios');
 
