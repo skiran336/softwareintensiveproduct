@@ -38,8 +38,6 @@ const Search = () => {
 
   return (
     <div className="search-container">
-      <h1>Software Intensive Product Search</h1>
-      
       <div className="search-input-group">
         <input
           type="text"

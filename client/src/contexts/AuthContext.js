@@ -70,19 +70,31 @@ export function AuthProvider({ children }) {
   }, [syncUserWithBackend]);
 
   // Sign up with email and password
-  const signUp = async ({ email, password, metadata = {} }) => {
+  const signUp = async ({ email, password, name, phone_number, profession}) => {
+    setLoading(true);
+    setError(null);
+  
     try {
-      setLoading(true);
-      setError(null);
-      const { data, error } = await supabase.auth.signUp({
+      // 1. Create auth user with metadata
+      const { data: { user }, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: metadata }
+        options: {
+          data: {
+            name,
+            phone_number,
+            profession
+          }
+        }
       });
-
-      if (error) throw error;
-      if (data.user) await syncUserWithBackend(data.user);
-      return data;
+  
+      if (authError) throw authError;
+  
+      // 2. Let the database trigger create the profile
+      // No need for manual profile insertion
+  
+      return user;
+  
     } catch (error) {
       setError(error.message);
       throw error;

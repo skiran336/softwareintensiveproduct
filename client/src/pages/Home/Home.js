@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { FaUserCircle } from 'react-icons/fa';
 import CategoryCard from '../../components/CategoryCard/CategoryCard'; 
 import '../../styles/Home.css';
+import { FiUser, FiLogOut } from 'react-icons/fi';
 
 const categories = [
   {
@@ -39,36 +40,61 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      {/* User Icon Container */}
-      <div className="user-icon-container">
-        <div className="user-icon" onClick={() => setIsDropdownOpen(!isDropdownOpen)}>
-          <FaUserCircle size={32} />
-          {/* Dropdown Menu */}
-          <div className="profile-dropdown">
-            <Link to="/profile" className="dropdown-item">
-              View Profile
-            </Link>
-            <button onClick={signOut} className="dropdown-item">
-              Logout
-            </button>
+      <header className="header">
+        <div className="header-content">
+          <Link to="/" className="logo">SIP FINDER</Link>
+          <nav className="nav-links">
+            <Link to="/products" className="nav-link">Products</Link>
+            <Link to="/favourites" className="nav-link">Favourites</Link>
+            <Link to="/contact" className="nav-link">Contact</Link>
+          </nav>
+        </div>
+
+        <div className="user-info-container">
+          <div 
+            className="user-icon-container" 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          >
+            <div className="user-details">
+              <span className="user-name">
+                {user?.user_metadata?.name || 'User'}
+              </span>
+            </div>
+            <FaUserCircle className="user-icon" size={32} />
+            
+            {isDropdownOpen && (
+              <div className="profile-dropdown">
+                <Link to="/profile" className="dropdown-item">
+                  <FiUser className="dropdown-icon" /> Profile
+                </Link>
+                <button onClick={signOut} className="dropdown-item">
+                  <FiLogOut className="dropdown-icon" /> Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
-        <div className="user-email">
-          <p>{user?.email}</p>
+      </header>
+
+      <main className="main-content">
+        <Search />
+        <h2 className="categories-title">Product Categories</h2>
+        <div className="categories-grid">
+          {categories.map((category) => (
+            <CategoryCard key={category.id} category={category} />
+          ))}
         </div>
+      </main>
 
-      </div>
-
-      <Search />
-      <h2 className="categories-title">Product Categories</h2>
-      <div className="categories-grid">
-        {categories.map((category) => (
-          <CategoryCard key={category.id} category={category} />
-        ))}
-      </div>
+      <footer className="footer">
+        <div className="footer-links">
+          <Link to="/" className="footer-link">Home</Link>
+          <Link to="/about" className="footer-link">About</Link>
+          <Link to="/contact" className="footer-link">Contact</Link>
+        </div>
+        <p className="copyright">&copy; 2025 SIPFinder. All rights reserved.</p>
+      </footer>
     </div>
-
-   
   );
 };
 

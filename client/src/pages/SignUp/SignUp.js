@@ -4,17 +4,32 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import '../../styles/SignUp.css';
 
+const professions = [
+    'Student',
+    'Software Engineer',
+    'Software Manager',
+    'Product Owner',
+    'Product Designer',
+    'Other'
+  ];
+
 export default function Signup() {
   const[firstName, setFirstName] = useState('');
   const[lastName, setLastName] = useState('');
-  const[phone, setPhone] = useState('');
+  const[phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [username, setUsername] = useState('');
   const navigate = useNavigate();
+  const [selectedProfession, setSelectedProfession] = useState('');
+  const [customProfession, setCustomProfession] = useState('');
   
   const { signUp, loading, error } = useAuth();
+
+  const handleProfessionChange = (e) => {
+    setSelectedProfession(e.target.value);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,7 +38,21 @@ export default function Signup() {
       return;
     }
     try {
-      await signUp({ email, password, username });
+        const fullName = `${firstName} ${lastName}`.trim();
+        const finalProfession = selectedProfession === 'Other' 
+        ? customProfession 
+        : selectedProfession;
+
+      if (!finalProfession) {
+        throw new Error('Please select a profession');
+      }
+        await signUp({
+            email,
+            password,
+            name: fullName,
+            phone_number: phoneNumber,
+            profession: finalProfession
+          });
       navigate('/login');
     } catch (error) {
       console.error('Signup failed:', error);
@@ -55,8 +84,8 @@ export default function Signup() {
         <input
             type="text"
             placeholder="PhoneNumber"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
             disabled={loading}
             required
             />
@@ -92,6 +121,37 @@ export default function Signup() {
             disabled={loading}
             required
             />
+            <div className="profession-section">
+                <label>Please select your profession:</label>
+                <div className="radio-group">
+                    {professions.map((profession) => (
+                    <label key={profession} className="radio-option">
+                        <input
+                        type="radio"
+                        name="profession"
+                        value={profession}
+                        checked={selectedProfession === profession}
+                        onChange={handleProfessionChange}
+                        required
+                        />
+                        <span className="radio-custom"></span>
+                        <span>{profession}</span>
+                    </label>
+                    ))}
+                </div>
+                
+                {selectedProfession === 'Other' && (
+                    <div className="custom-profession">
+                    <input
+                        type="text"
+                        value={customProfession}
+                        onChange={(e) => setCustomProfession(e.target.value)}
+                        placeholder="Please specify your profession"
+                        required={selectedProfession === 'Other'}
+                    />
+            </div>
+  )}
+</div>
             <button 
             type="submit" 
             disabled={loading}
