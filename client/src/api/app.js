@@ -11,28 +11,43 @@ const app = express();
 // Middleware
 app.use(express.static('public'));
 app.use(cors({
-    origin: 'http://localhost:3000', // Should match your React app's port (usually 3000)
-    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add more methods as needed
+    origin: process.env.NODE_ENV === 'production' 
+        ? process.env.FRONTEND_URL 
+        : 'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
 }));
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Database
+// Database connection
 connectDB();
 
-// Routes
+// API Routes
 app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes);
-// In your Express.js route
-const axios = require('axios');
 
-
-
-
-// Error handling
-
-const PORT = 4000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
 });
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ 
+        error: 'Something went wrong!',
+        message: process.env.NODE_ENV === 'development' ? err.message : null
+    });
+});
+
+// Export for Vercel serverless functions
+module.exports = app;
+
+// Local development server
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 4000;
+    app.listen(PORT, () => {
+        console.log(`Server running in development on port ${PORT}`);
+    });
+}
