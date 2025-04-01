@@ -1,4 +1,4 @@
-const SIP = require('../models/sip');
+const SIP = require('../models/SIP');
 
 const searchProducts = async (queryParams) => {
   const { searchTerm, category } = queryParams;
