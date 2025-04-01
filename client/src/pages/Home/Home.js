@@ -18,7 +18,7 @@ const categories = [
     id: 2,
     name: 'Wearables',
     description: 'Smart devices and health tech',
-    imageUrl: '/images/wearables-category.jpg'
+    imageUrl: 'public/images/wearables-category.jpg'
   },
   {
     id: 3,
