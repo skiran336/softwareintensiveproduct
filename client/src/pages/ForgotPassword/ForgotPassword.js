@@ -22,6 +22,7 @@ export default function ForgotPassword() {
     <div className= "forgot-password-background">
         <div className="forgot-password-container">
         <h2>Password Reset</h2>
+        
         {message && <div className="success-message">{message}</div>}
         {error && <div className="error-message">{error.message}</div>}
         <form className="forgot-password-form" onSubmit={handleSubmit}>

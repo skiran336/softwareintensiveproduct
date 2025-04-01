@@ -5,7 +5,7 @@
 }
 :root {
   --primary: #cca713;       /* Gold */
-  --secondary: #e0aa2b;     /* Rich gold */
+  --secondary: #b2851b;     /* Rich gold */
   --accent: #C44536;        /* Terracotta red */
   --background: #ffffff;    /* White */
   --surface: #f6f6f6;       /* Light gray */
@@ -30,14 +30,13 @@ body {
   flex-direction: column;
   background: var(--background);
   color: var(--text);
-  font-family: 'Inter', sans-serif;
-  padding-top: 80px; /* Header height */
+  font-family: 'Inter', sans-serif; /* Header height */
   padding-bottom: 0px;
 }
 
 /* Header Styles */
 .header {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   right: 0;
@@ -60,7 +59,7 @@ body {
   font-size: 1.5rem;
   padding: 4px 0;
   font-weight: 700;
-  background: linear-gradient(45deg, var(--secondary), var(--primary));
+  background: linear-gradient(45deg, #e1a61b, #daba3d );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-decoration: none;
@@ -111,7 +110,7 @@ body {
 }
 
 .user-name {
-  color: var(--secondary);
+  color: #ffd500;
   font-size: 1rem;
   font-weight: 600;
 }
@@ -189,6 +188,7 @@ body {
 
 
 .footer {
+  height: 80px;
   background: var(--header-bg);
   color: white;
   padding: 1.5rem 2rem;
