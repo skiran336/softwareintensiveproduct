@@ -1,5 +1,10 @@
 const serverless = require('serverless-http');
 const app = require('./app');
 
-// Wrap Express app with serverless-http for Vercel compatibility
-module.exports.handler = serverless(app);
+// Serverless-specific error handling
+const handler = serverless(app);
+
+module.exports.handler = async (event, context) => {
+  context.callbackWaitsForEmptyEventLoop = false;
+  return await handler(event, context);
+};
