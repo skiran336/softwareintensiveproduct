@@ -58,8 +58,10 @@ const Search = () => {
           <div key={product._id} className="product-card">
             <h3>{product.name}</h3>
             <div className="product-meta">
-              <span className="category">{product.category}</span>
-              <span className="manufacturer">{product.manufacturer}</span>
+              <span className="category">Category: {product.category}</span>
+              <span className="manufacturer">Manufacturer: {product.manufacturer}</span>
+              <span className="manufacturer">Version: {product.versions}</span>
+              <span className="manufacturer">Operating System: {product.operatingSystems}</span>
             </div>
             {product.components?.length > 0 && (
               <div className="components-list">
