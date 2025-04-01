@@ -2,38 +2,32 @@ require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
-const connectDB = require('../api/config/db');
+const mongoose = require('mongoose');
+const connectDB = require('../config/db'); // Single required declaration
 
-// Initialize Express first
 const app = express();
-
-// ======================
-//    Critical Middleware
-// ======================
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // ======================
 //   Database Connection
 // ======================
-if (process.env.NODE_ENV !== 'production') {
-  // Local development connection
-  connectDB();
-} else {
-  // Serverless-compatible connection
-  mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    bufferCommands: false, // Disable command buffering
-    bufferMaxEntries: 0 // Disable connection pooling
-  }).catch(error => {
-    console.error('Serverless DB Connection Error:', error);
+// Initialize database connection
+connectDB().catch(error => {
+  console.error('Database Connection Failed:', error);
+  process.exit(1);
+});
+
+// Serverless-specific optimization
+if (process.env.NODE_ENV === 'production') {
+  mongoose.connection.on('connected', () => {
+    console.log('Database connected - serverless mode');
   });
 }
 
 // ======================
-//    Additional Middleware
+//      Middleware
 // ======================
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
     ? process.env.FRONTEND_URL 
@@ -48,18 +42,18 @@ process.env.NODE_ENV !== 'production' && app.use(morgan('dev'));
 //       Routes
 // ======================
 const router = express.Router();
-app.use('/api', router); // Base API route
+app.use('/api', router);
 
-// Health Check
+// Health Check with connection verification
 router.get('/health', (req, res) => {
   res.status(200).json({
     status: 'ok',
-    dbState: mongoose.connection.readyState,
+    dbState: mongoose.STATES[mongoose.connection.readyState],
     environment: process.env.NODE_ENV
   });
 });
 
-// Your existing routes
+// Route imports
 const productRoutes = require('../routes/productRoutes');
 const userRoutes = require('../routes/userRoutes');
 router.use('/products', productRoutes);
@@ -69,11 +63,10 @@ router.use('/users', userRoutes);
 //  Error Handling
 // ======================
 app.use((err, req, res, next) => {
-  console.error(`[ERROR ${new Date().toISOString()}]`, err);
-  res.status(500).json({
-    error: 'Internal Server Error',
+  console.error(`[${new Date().toISOString()}] ERROR:`, err);
+  res.status(err.statusCode || 500).json({
+    error: err.message || 'Internal Server Error',
     ...(process.env.NODE_ENV !== 'production' && {
-      message: err.message,
       stack: err.stack
     })
   });

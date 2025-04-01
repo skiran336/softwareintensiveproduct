@@ -1,17 +1,18 @@
-// config/db.js
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
+    await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000 // Timeout after 5s
+      serverSelectionTimeoutMS: 5000,
+      bufferCommands: false, // Disable for serverless
+      bufferMaxEntries: 0
     });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`MongoDB Connected: ${mongoose.connection.host}`);
   } catch (error) {
-    console.error(`Database Connection Error: ${error.message}`);
-    process.exit(1); // Exit process with failure
+    console.error(`Database Error: ${error.message}`);
+    throw error;
   }
 };
 
