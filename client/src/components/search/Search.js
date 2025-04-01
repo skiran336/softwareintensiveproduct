@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { supabase } from '../../services/supabaseClient';
 import '../../styles/search.css';
 
 const Search = () => {
@@ -18,15 +19,28 @@ const Search = () => {
     try {
       setLoading(true);
       setError('');
-      
-      const response = await fetch(
-        `http://localhost:4000/api/products/search?q=${encodeURIComponent(searchTerm)}`  
-      );
+      console.log(searchTerm);
+      // Supabase query with OR for multiple column searches
+      const { data, error: sbError } = await supabase
+        .from('products')
+        .select(`
+          Id,
+          name,
+          category,
+          manufacturer,
+          versions,
+          operatingSystems
+        `)
+        .or(
+          `name.ilike.%${searchTerm}%,` +
+          `category.ilike.%${searchTerm}%,` +
+          `manufacturer.ilike.%${searchTerm}%,` +
+          `operatingSystems.ilike.%${searchTerm}%`
+        );
 
-      if (!response.ok) throw new Error('Failed to fetch results');
-      
-      const data = await response.json();
-      setResults(data.products || []);
+      if (sbError) throw sbError;
+      console.log(data);
+      setResults(data || []);
       
     } catch (err) {
       setError('Error fetching results. Please try again.');
@@ -43,7 +57,7 @@ const Search = () => {
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search products (e.g., 'Tesla' or 'Thermostat')"
+          placeholder="Search products (e.g., 'Tesla' or 'QNX')"
           onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
         />
         <button onClick={handleSearch} disabled={loading}>
@@ -55,20 +69,34 @@ const Search = () => {
 
       <div className="results-grid">
         {results.map((product) => (
-          <div key={product._id} className="product-card">
+          <div key={product.Id} className="product-card">
             <h3>{product.name}</h3>
             <div className="product-meta">
-              <span className="category">Category: {product.category}</span>
+              <span className="category">Category: {product.name}</span>
               <span className="manufacturer">Manufacturer: {product.manufacturer}</span>
-              <span className="manufacturer">Version: {product.versions}</span>
-              <span className="manufacturer">Operating System: {product.operatingSystems}</span>
+              <span className="version">Version: {product.versions}</span>
+              <span className="os">OS: {product.operatingSystems}</span>
             </div>
+            
+            {product.dependencies?.length > 0 && (
+              <div className="dependencies-list">
+                <strong>Dependencies:</strong>
+                <div className="chips">
+                  {product.dependencies.map((dep, index) => (
+                    <span key={index} className="chip">{dep}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {product.components?.length > 0 && (
               <div className="components-list">
                 <strong>Components:</strong>
-                {product.components.map((component) => (
-                  <span key={component._id}>{component.name}</span>
-                ))}
+                <ul>
+                  {product.components.map((component, index) => (
+                    <li key={index} className="break-words">{component}</li>
+                  ))}
+                </ul>
               </div>
             )}
           </div>
