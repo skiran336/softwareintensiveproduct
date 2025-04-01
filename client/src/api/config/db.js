@@ -6,13 +6,12 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
-      bufferCommands: false, // Disable for serverless
-      bufferMaxEntries: 0
+      bufferCommands: false
     });
-    console.log(`MongoDB Connected: ${mongoose.connection.host}`);
+    console.log('MongoDB Connected');
   } catch (error) {
-    console.error(`Database Error: ${error.message}`);
-    throw error;
+    console.error('Database Connection Error:', error.message);
+    process.exit(1);
   }
 };
 

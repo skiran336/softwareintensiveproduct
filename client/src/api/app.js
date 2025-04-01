@@ -24,7 +24,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // ======================
-//      Middleware
+//      Middlewarefpro
 // ======================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -54,8 +54,8 @@ router.get('/health', (req, res) => {
 });
 
 // Route imports
-const productRoutes = require('../routes/productRoutes');
-const userRoutes = require('../routes/userRoutes');
+const productRoutes = require('../api/routes/productRoutes');
+const userRoutes = require('../api/routes/userRoutes');
 router.use('/products', productRoutes);
 router.use('/users', userRoutes);
 
