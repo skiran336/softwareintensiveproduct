@@ -3,7 +3,7 @@ const express = require('express');
 const morgan = require('morgan');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const connectDB = require('../config/db'); // Single required declaration
+const connectDB = require('../api/config/db'); // Single required declaration
 
 const app = express();
 
