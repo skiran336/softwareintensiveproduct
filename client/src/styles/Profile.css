@@ -1,4 +1,9 @@
-/* Profile.css */
+.profile-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
 .profile-container {
   background: rgba(255, 255, 255, 0.97);
   padding: 2.5rem;
@@ -13,34 +18,46 @@
 }
 
 .profile-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  text-align: center;
   margin-bottom: 2.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
 }
 
-.profile-header h2 {
-  font-size: 1.75rem;
+.profile-header .form-title {
+  font-size: 2rem;
+  line-height: 1.3;
+  margin-bottom: 1rem;
+}
+
+.gradient-text {
+  background: linear-gradient(45deg, var(--primary), var(--secondary));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  display: block;
+  font-weight: 700;
+}
+
+.brand-name {
   color: var(--primary);
+  display: block;
+  font-weight: 600;
+  margin-top: 0.5rem;
+  font-size: 1.25rem;
 }
 
 .profile-actions {
+  margin-top: 1.5rem;
   display: flex;
-  gap: 1rem;
+  justify-content: center;
+  gap: 1.5rem;
 }
 
 .home-btn,
-.edit-btn,
-.save-btn {
+.edit-btn {
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-weight: 600;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .home-btn {

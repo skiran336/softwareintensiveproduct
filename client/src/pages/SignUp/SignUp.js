@@ -67,7 +67,7 @@ export default function Signup() {
         <form className="signup-form" onSubmit={handleSubmit}>
         <input
             type="text"
-            placeholder="FirstName"
+            placeholder="First Name"
             value={firstName}
             onChange={(e) => setFirstName(e.target.value)}
             disabled={loading}
@@ -75,7 +75,7 @@ export default function Signup() {
             />
         <input
             type="text"
-            placeholder="LastName"
+            placeholder="Last Name"
             value={lastName}
             onChange={(e) => setLastName(e.target.value)}
             disabled={loading}
@@ -83,7 +83,7 @@ export default function Signup() {
             />
         <input
             type="text"
-            placeholder="PhoneNumber"
+            placeholder="Phone Number"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
             disabled={loading}
