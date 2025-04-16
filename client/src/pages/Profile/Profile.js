@@ -125,7 +125,7 @@ export default function Profile() {
           <label>Username</label>
           <input
             type="text"
-            value={username}
+            value={user?.username}
             onChange={(e) => setUsername(e.target.value)}
             disabled={!editMode}
           />
