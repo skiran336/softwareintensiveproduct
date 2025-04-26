@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseClient';
-import { toggleFavorite } from '../../services/favorites';
+import { toggleFavorite, fetchUserFavorites } from '../../services/favorites';
 import '../../styles/search.css';
 
 const Search = ({ onSearch }) => {
@@ -12,24 +12,35 @@ const Search = ({ onSearch }) => {
   const [hasSearched, setHasSearched] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState([]);
 
-  // Fetch user's favorites when component mounts
+  // Fetch favorites and setup auth listener
   useEffect(() => {
-    const fetchFavorites = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('favorites')
-        .select('product_id')
-        .eq('user_id', user.id);
-
-      if (!error) {
-        setFavoriteIds(data.map(fav => fav.product_id));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event) => {
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          await updateFavorites();
+        }
       }
-    };
+    );
 
-    fetchFavorites();
+    updateFavorites();
+
+    return () => subscription?.unsubscribe();
   }, []);
+
+  const updateFavorites = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setFavoriteIds([]);
+        return;
+      }
+      
+      const favorites = await fetchUserFavorites(user.id);
+      setFavoriteIds(favorites);
+    } catch (error) {
+      console.error('Failed to update favorites:', error);
+    }
+  };
 
   // Debounced search suggestions
   useEffect(() => {
@@ -40,17 +51,17 @@ const Search = ({ onSearch }) => {
 
     const delayDebounceFn = setTimeout(async () => {
       try {
-        const { data, error: sbError } = await supabase
+        const { data, error } = await supabase
           .from('products')
-          .select('Id, name, category, manufacturer')
+          .select('id, name, category, manufacturer')
           .or(
-            `name.ilike.%${searchTerm}%,` +
-            `category.ilike.%${searchTerm}%,` +
+            `name.ilike.%${searchTerm}%`,
+            `category.ilike.%${searchTerm}%`,
             `manufacturer.ilike.%${searchTerm}%`
           )
           .limit(5);
 
-        if (sbError) throw sbError;
+        if (error) throw error;
         setSuggestions(data || []);
       } catch (err) {
         console.error('Suggestion error:', err);
@@ -72,24 +83,24 @@ const Search = ({ onSearch }) => {
       setLoading(true);
       setError('');
 
-      const { data, error: sbError } = await supabase
+      const { data, error } = await supabase
         .from('products')
         .select(`
-          Id,
+          id,
           name,
           category,
           manufacturer,
           versions,
-          operatingSystems
+          operating_systems
         `)
         .or(
-          `name.ilike.%${searchTerm}%,` +
-          `category.ilike.%${searchTerm}%,` +
-          `manufacturer.ilike.%${searchTerm}%,` +
-          `operatingSystems.ilike.%${searchTerm}%`
+          `name.ilike.%${searchTerm}%`,
+          `category.ilike.%${searchTerm}%`,
+          `manufacturer.ilike.%${searchTerm}%`,
+          `operating_systems.ilike.%${searchTerm}%`
         );
 
-      if (sbError) throw sbError;
+      if (error) throw error;
       setResults(data || []);
       setSuggestions([]);
 
@@ -108,20 +119,32 @@ const Search = ({ onSearch }) => {
   };
 
   const handleFavorite = async (productId) => {
-    const { error } = await toggleFavorite(productId);
-    if (!error) {
-      setFavoriteIds(prev => prev.includes(productId)
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId]
-      );
+    try {
+      const { error } = await toggleFavorite(productId);
+      if (error) throw error;
+
+      // Optimistic UI update
+      setFavoriteIds(prev => {
+        const newFavorites = prev.includes(productId)
+          ? prev.filter(id => id !== productId)
+          : [...prev, productId];
+        return newFavorites;
+      });
+
+      // Sync with database
+      await updateFavorites();
+
+    } catch (error) {
+      console.error('Favorite error:', error);
+      setError(error.message || 'Failed to update favorite');
     }
   };
 
   return (
     <div className="search-container">
       <h1 className="search-heading">
-      Software Intensive Product Search
-     </h1>
+        Software Intensive Product Search
+      </h1>
       <div className="search-input-group">
         <input
           type="text"
@@ -138,7 +161,7 @@ const Search = ({ onSearch }) => {
           <ul className="suggestions-dropdown">
             {suggestions.map(product => (
               <li 
-                key={product.Id} 
+                key={product.id}
                 onClick={() => handleSuggestionClick(product)}
               >
                 {product.name} <span className="suggestion-category">({product.category})</span>
@@ -152,27 +175,39 @@ const Search = ({ onSearch }) => {
 
       <div className="results-grid">
         {results.map((product) => (
-          <div key={product.Id} className="product-card">
+          <div key={product.id} className="product-card">
             <div className="card-header">
               <h3>{product.name}</h3>
               <button 
-                onClick={() => handleFavorite(product.Id)}
+                onClick={() => handleFavorite(product.id)}
                 className={`favorite-btn ${
-                  favoriteIds.includes(product.Id) ? 'favorited' : ''
+                  favoriteIds.includes(product.id) ? 'favorited' : ''
                 }`}
-                aria-label={favoriteIds.includes(product.Id) 
+                aria-label={favoriteIds.includes(product.id) 
                   ? "Remove from favorites" 
                   : "Add to favorites"
                 }
               >
-                {favoriteIds.includes(product.Id) ? '★' : '☆'}
+                {favoriteIds.includes(product.id) ? '★' : '☆'}
               </button>
             </div>
             <div className="product-meta">
               <span className="category">Category: {product.category}</span>
               <span className="manufacturer">Manufacturer: {product.manufacturer}</span>
-              <span className="version">Version: {product.versions}</span>
-              <span className="os">OS: {product.operatingSystems}</span>
+              <span className="version">
+                Versions: {
+                  (Array.isArray(product.versions) && product.versions.length > 0)
+                    ? product.versions.join(', ')
+                    : 'N/A'
+                }
+              </span>
+              <span className="os">
+                OS: {
+                  (Array.isArray(product.operating_systems) && product.operating_systems.length > 0)
+                    ? product.operating_systems.join(', ')
+                    : 'N/A'
+                }
+              </span>
             </div>
           </div>
         ))}

@@ -23,12 +23,12 @@ const Favorites = () => {
         .from('favorites')
         .select(`
           product:products (
-            Id,
+            id,
             name,
             category,
             manufacturer,
             versions,
-            operatingSystems
+            operating_systems
           )
         `)
         .eq('user_id', user.id);

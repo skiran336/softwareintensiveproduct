@@ -25,7 +25,7 @@ const Compare = () => {
       try {
         const { data, error: sbError } = await supabase
           .from('products')
-          .select('Id, name, category')
+          .select('id, name, category')
           .or(
             `name.ilike.%${term}%,` +
             `category.ilike.%${term}%,` +
