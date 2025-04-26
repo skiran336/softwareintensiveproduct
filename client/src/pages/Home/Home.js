@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 import CategoryCard from '../../components/CategoryCard/CategoryCard';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
@@ -17,7 +16,7 @@ const categories = [
     id: 2,
     name: 'Wearables',
     description: 'Smart devices and health tech',
-    imageUrl: 'public/images/wearables-category.jpg'
+    imageUrl: '/images/wearables-category.jpg'
   },
   {
     id: 3,
@@ -39,7 +38,8 @@ const Home = () => {
       <Header />
       
       <main className="main-content">
-        <Search />
+        <Search />   {/* Removed onSearch */}
+        
         <h2 className="categories-title">Product Categories</h2>
         <div className="categories-grid">
           {categories.map((category) => (

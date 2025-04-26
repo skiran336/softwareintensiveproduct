@@ -20,9 +20,9 @@ const Header = () => {
         />
         </Link>
         <nav className="nav-links">
-          <Link to="/products" className="nav-link">Products</Link>
+          <Link to="/home" className="nav-link">Home</Link>
           <Link to="/favourites" className="nav-link">Favourites</Link>
-          <Link to="/contact" className="nav-link">Contact</Link>
+          <Link to="/compare" className="nav-link">Compare Products</Link>
         </nav>
       </div>
 
@@ -33,7 +33,7 @@ const Header = () => {
         >
           <div className="user-details">
             <span className="user-name">
-              Welcome {user?.user_metadata?.name || 'User'}!
+             Hello {user?.user_metadata?.name || 'User'}!
             </span>
           </div>
           <FaUserCircle className="user-icon" size={32} />

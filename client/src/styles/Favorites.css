@@ -1,0 +1,98 @@
+/* Favorites Page Container */
+.favorites-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+  }
+  
+  .favorites-container h2 {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+  }
+  
+  /* Empty State Styling */
+  .favorites-container p {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    margin-top: 2rem;
+  }
+  
+  /* Favorites Grid Layout */
+  .favorites-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
+  }
+  
+  /* Individual Favorite Item */
+  .favorite-item {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+    position: relative;
+  }
+  
+  .favorite-item:hover {
+    transform: translateY(-3px);
+  }
+  
+  .favorite-item h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    font-size: 1.4rem;
+  }
+  
+  .favorite-item p {
+    text-align: left;
+    color: #34495e;
+    margin: 0.5rem 0;
+    font-size: 1rem;
+  }
+  
+  /* Remove Button Styling */
+  .remove-btn {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-top: 1.5rem;
+    width: 100%;
+    transition: background-color 0.2s ease;
+  }
+  
+  .remove-btn:hover {
+    background-color: #c0392b;
+  }
+  
+  /* Loading State */
+  .loading-favorites {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+    margin-top: 2rem;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .favorites-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .favorites-container h2 {
+      font-size: 2rem;
+    }
+  
+    .favorite-item {
+      padding: 1rem;
+    }
+  }

@@ -14,6 +14,7 @@ const CategoryCard = ({ category }) => {
         <div className="category-overlay">
           <h3 className="category-title">{category.name}</h3>
           <p className="category-description">{category.description}</p>
+          <span className="view-more">View Products →</span>
         </div>
       </div>
     </Link>

@@ -12,6 +12,11 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+#root {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
 /* Base Styles with Theme Support */
 :root {
@@ -67,20 +72,14 @@ body {
 
 /* Main Content */
 .main-content {
-  flex: 1 0 auto;
+  min-height: 800px;
+  flex: 1;
   padding: 20px;
-  margin-top: 80px; /* Adjust based on header height */
+  margin-top: 0; /* Adjust based on header height */
   margin-bottom: 20px; /* Space before footer */
 }
 
 /* Footer */
-.footer {
-  background: var(--header-bg);
-  color: white;
-  padding: 1rem 2rem;
-  margin-top: auto;
-  z-index: 1000;
-}
 /* Container System (Enhanced) */
 .container {
   width: 100%;

@@ -7,6 +7,8 @@ import PrivateRoute from './components/PrivateRoute';
 import Signup from './pages/SignUp/SignUp';
 import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import Profile from './pages/Profile/Profile'
+import ComparePage from './pages/Compare/Compare';
+import Favorites from './pages/Favourites/Favorites';
 import './styles/globals.css'
 
 function App() {
@@ -20,6 +22,8 @@ function App() {
           <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
           <Route path="/" element={<Navigate to="/login" />} />
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+          <Route path="/compare" element={<PrivateRoute><ComparePage /></PrivateRoute>} />
+          <Route path='/favourites' element= {<PrivateRoute><Favorites /></PrivateRoute>} />
         </Routes>
       </AuthProvider>
     </Router>

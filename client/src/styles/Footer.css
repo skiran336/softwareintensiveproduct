@@ -1,13 +1,12 @@
 /* styles/Footer.css */
 
 .footer {
-    color: var(--text);
-    background: #255c83;
-    padding: 0.5rem 1rem;
-    text-align: center;
-    margin-top: auto;
-    border-top: 1px solid var(--border);
-  }
+  background: #255c83;
+  color: var(--text);
+  padding: 1rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
   
   .footer-content {
     max-width: 1200px;

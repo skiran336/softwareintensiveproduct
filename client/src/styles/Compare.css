@@ -1,0 +1,175 @@
+.compare-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+h2 {
+    text-align: center;
+    color: #08637f;
+    margin-bottom: 2rem;
+}
+
+.selection-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.sip-selector {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.search-box {
+    position: relative;  /* For dropdown positioning */
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.search-box input {
+    padding: 0.6rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+button {
+    background: #087f5b;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    width: fit-content;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Suggestions Dropdown Styling */
+.suggestions-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    z-index: 100;
+    max-height: 200px;
+    overflow-y: auto;
+    margin-top: 0.3rem;
+    list-style: none;
+}
+
+.suggestions-dropdown li {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.suggestions-dropdown li:hover {
+    background: #e9ecef;
+}
+
+.suggestion-category {
+    color: #6c757d;
+    font-size: 0.85rem;
+    margin-left: 0.5rem;
+}
+
+/* Comparison Section */
+.comparison-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    margin-top: 3rem;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.comparison-header {
+    display: contents;
+    background: #f1f3f5;
+    font-weight: bold;
+}
+
+.comparison-row {
+    display: contents;
+}
+
+.feature-column {
+    background: #f8f9fa;
+    padding: 1rem;
+    font-weight: 600;
+    border-right: 1px solid #dee2e6;
+}
+
+.product-column {
+    padding: 1rem;
+    border-right: 1px solid #dee2e6;
+    background: #fff;
+    word-break: break-word;
+}
+
+.product-column:last-child {
+    border-right: none;
+}
+
+.diff {
+    background: #fff3bf;
+    font-weight: 500;
+}
+
+.reset-btn {
+    grid-column: span 3;
+    margin: 1rem;
+    background: #e64980;
+    transition: background 0.2s;
+    padding: 0.6rem 1.2rem;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.reset-btn:hover {
+    background: #c2255c;
+}
+
+/* Error Message */
+.error {
+    color: #dc3545;
+    background: #fff5f5;
+    border: 1px solid #f5c2c7;
+    border-radius: 4px;
+    padding: 1rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .selection-section {
+        grid-template-columns: 1fr;
+    }
+    .comparison-wrapper {
+        grid-template-columns: 1fr;
+    }
+    .comparison-header, .comparison-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+    .feature-column {
+        grid-column: span 2;
+    }
+}
