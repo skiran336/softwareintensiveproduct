@@ -35,22 +35,29 @@
   margin: 0 auto;
 }
 
-.logo {
-  display: inline-block;
-  height: 40px; /* Adjust based on your logo proportions */
-  margin-right: 2rem;
-  transition: opacity 0.3s ease;
+.logo-text {
+  font-size: 2rem;
+  font-weight: 700;
+  background: linear-gradient(45deg, #4CAF50, #2196F3);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-decoration: none;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
 }
 
-.logo-image {
-  height: 100%;
-  width: auto;
-  max-width: 150px; /* Control maximum logo size */
-  object-fit: contain;
+.logo-text:hover {
+  transform: scale(1.05);
+  text-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-.logo:hover {
-  opacity: 0.9;
+/* Adjust header layout if needed */
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
 }
 
 .nav-links {
@@ -129,4 +136,37 @@
 .dropdown-icon {
   font-size: 1.1rem;
   color: var(--primary);
+}
+
+.avatar-wrapper {
+  position: relative;
+  margin-left: 15px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.1);
+}
+
+.user-avatar.avatar-error {
+  display: none;
+}
+
+.user-icon {
+  color: #fff;
+  transition: transform 0.2s ease;
+}
+
+.user-icon:hover {
+  transform: scale(1.1);
 }

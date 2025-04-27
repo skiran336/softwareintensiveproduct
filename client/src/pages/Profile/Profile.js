@@ -12,21 +12,24 @@ export default function Profile() {
   const [username, setUsername] = useState(user?.user_metadata?.username || '');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState(user?.user_metadata?.phone || '');
-  const [avatarUrl, setAvatarUrl] = useState(user?.user_metadata?.avatar_url || '');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch profile data including name
+  // Fetch profile data including avatar
   const fetchProfile = async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('name')
+        .select('name, avatar_url')
         .eq('id', user.id)
         .single();
 
       if (error) throw error;
-      if (data) setName(data.name);
+      if (data) {
+        setName(data.name);
+        setAvatarUrl(data.avatar_url);
+      }
     } catch (error) {
       setError(error.message);
     }
@@ -44,30 +47,45 @@ export default function Profile() {
       const file = event.target.files[0];
       if (!file) return;
 
+      // Delete old avatar if exists
+      if (avatarUrl) {
+        const oldFileName = avatarUrl.split('/').pop();
+        await supabase.storage
+          .from('avatars')
+          .remove([oldFileName]);
+      }
+
+      // Upload new avatar
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}${Math.random()}.${fileExt}`;
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
+      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      await updateUser({
-        data: { 
-          ...user.user_metadata,
-          avatar_url: publicUrl,
-          username,
-          phone
-        }
-      });
+      // Update profile
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: publicUrl })
+        .eq('id', user.id);
 
+      if (profileError) throw profileError;
+
+      // Update local state
       setAvatarUrl(publicUrl);
+      await fetchProfile(); // Refresh data
+
     } catch (error) {
       setError(error.message);
     } finally {
@@ -80,14 +98,13 @@ export default function Profile() {
     try {
       setLoading(true);
       
-      // Update both user metadata and profiles table
+      // Update both user metadata and profile
       await Promise.all([
         updateUser({
           data: { 
             ...user.user_metadata,
             username,
-            phone,
-            avatar_url: avatarUrl
+            phone
           }
         }),
         supabase
@@ -96,6 +113,7 @@ export default function Profile() {
           .eq('id', user.id)
       ]);
 
+      await fetchProfile(); // Refresh profile data
       setEditMode(false);
     } catch (error) {
       setError(error.message);
@@ -112,7 +130,7 @@ export default function Profile() {
         <div className="profile-header">
           <h2 className="form-title">
             <span className="gradient-text">Profile Settings</span>
-            <span className="brand-name">SIP FINDER</span>
+
           </h2>
           <div className="profile-actions">
             <Link to="/home" className="home-btn">
@@ -128,11 +146,12 @@ export default function Profile() {
         </div>
 
         <form onSubmit={handleSubmit} className="profile-form">
-          <div className="avatar-upload">
+        <div className="avatar-upload">
             <div className="avatar-preview">
               <img 
-                src={avatarUrl || 'https://via.placeholder.com/150'} 
+                src={avatarUrl || '/default-avatar.png'} 
                 alt="Avatar" 
+                className={avatarUrl ? '' : 'default-avatar'}
               />
               {editMode && (
                 <label className="upload-overlay">
@@ -173,7 +192,7 @@ export default function Profile() {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              disabled={!editMode}
+              disabled
             />
           </div>
 

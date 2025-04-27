@@ -9,6 +9,7 @@ import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
 import Profile from './pages/Profile/Profile'
 import ComparePage from './pages/Compare/Compare';
 import Favorites from './pages/Favourites/Favorites';
+import Chatbot from './components/chatbot/chatbot';
 import './styles/globals.css'
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
           <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/compare" element={<PrivateRoute><ComparePage /></PrivateRoute>} />
           <Route path='/favourites' element= {<PrivateRoute><Favorites /></PrivateRoute>} />
+          <Route path='/chat' element= {<PrivateRoute><Chatbot /></PrivateRoute>} />
         </Routes>
       </AuthProvider>
     </Router>

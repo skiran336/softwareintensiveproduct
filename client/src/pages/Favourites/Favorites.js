@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header/Header';
-import '../../styles/Favorites.css'
+import '../../styles/Favorites.css';
 
 const Favorites = () => {
   const [favorites, setFavorites] = useState([]);
@@ -33,7 +33,12 @@ const Favorites = () => {
         `)
         .eq('user_id', user.id);
 
-      if (!error) setFavorites(data.map(item => item.product));
+      if (error) {
+        console.error('Fetch error:', error);
+        return;
+      }
+      
+      setFavorites(data.map(item => item.product));
       setLoading(false);
     };
 
@@ -43,44 +48,51 @@ const Favorites = () => {
   const handleRemove = async (productId) => {
     const { data: { user } } = await supabase.auth.getUser();
     
-    const { error } = await supabase
-      .from('favorites')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('product_id', productId);
+    try {
+      const { error } = await supabase
+        .from('favorites')
+        .delete()
+        .match({
+          user_id: user.id,
+          product_id: productId
+        });
 
-    if (!error) {
-      setFavorites(prev => prev.filter(p => p.Id !== productId));
+      if (error) throw error;
+      
+      setFavorites(prev => prev.filter(p => p.id !== productId));
+    } catch (error) {
+      console.error('Delete error:', error);
     }
   };
 
   if (loading) return <div>Loading favorites...</div>;
 
   return (
-    <><Header />
-    <div className="favorites-container">
-      
-      <h2>Your Favorites</h2>
-      {favorites.length === 0 ? (
-        <p>No favorites yet. Start adding from search results!</p>
-      ) : (
-        <div className="favorites-grid">
-          {favorites.map(product => (
-            <div key={product.Id} className="favorite-item">
-              <h3>{product.name}</h3>
-              <p>Category: {product.category}</p>
-              <p>Manufacturer: {product.manufacturer}</p>
-              <button 
-                onClick={() => handleRemove(product.Id)}
-                className="remove-btn"
-              >
-                Remove
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-    </div></>
+    <>
+      <Header />
+      <div className="favorites-container">
+        <h1 className='favorite-heading'>Your Favorites</h1>
+        {favorites.length === 0 ? (
+          <p>No favorites yet. Start adding from search results!</p>
+        ) : (
+          <div className="favorites-grid">
+            {favorites.map(product => (
+              <div key={product.id} className="favorite-item">
+                <h3>{product.name}</h3>
+                <p>Category: {product.category}</p>
+                <p>Manufacturer: {product.manufacturer}</p>
+                <button 
+                  onClick={() => handleRemove(product.id)}
+                  className="remove-btn"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 

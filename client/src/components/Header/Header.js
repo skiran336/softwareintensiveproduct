@@ -10,6 +10,11 @@ const Header = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const userIconRef = useRef(null);
+  
+  // Get avatar URL from user metadata with fallbacks
+  const avatarUrl = user?.user_metadata?.avatar_url || 
+                   user?.app_metadata?.avatar_url || 
+                   user?.identities?.[0]?.identity_data?.avatar_url;
 
   const handleClickOutside = (event) => {
     if (
@@ -37,17 +42,14 @@ const Header = () => {
   return (
     <header className="header">
       <div className="header-content">
-        <Link to="/" className="logo">
-          <img 
-            src="/images/siplogo.png"
-            alt="SIP Finder Logo"
-            className="logo-image"
-          />
+        <Link to="/home" className="logo-text">
+          SIPFinder
         </Link>
         <nav className="nav-links">
           <Link to="/home" className="nav-link">Home</Link>
           <Link to="/favourites" className="nav-link">Favourites</Link>
           <Link to="/compare" className="nav-link">Compare Products</Link>
+          <Link to="/chat" className="nav-link">Ask our AI Assistant !</Link>
         </nav>
       </div>
 
@@ -59,11 +61,28 @@ const Header = () => {
         >
           <div className="user-details">
             <span className="user-name">
-              Hello {user?.user_metadata?.name || 'User'}!
+              Hello {user?.user_metadata?.name || user?.email || 'User'}!
             </span>
           </div>
-          <FaUserCircle className="user-icon" size={32} />
           
+          {/* Enhanced avatar display with error handling */}
+          <div className="avatar-wrapper">
+            {avatarUrl ? (
+              <img 
+                src={avatarUrl}
+                alt="Profile"
+                className="user-avatar"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.classList.add('avatar-error');
+                  e.target.src = '/default-avatar.png';
+                }}
+              />
+            ) : (
+              <FaUserCircle className="user-icon" size={32} />
+            )}
+          </div>
+
           {isDropdownOpen && (
             <div ref={dropdownRef} className="profile-dropdown">
               <Link 
