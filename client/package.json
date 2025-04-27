@@ -12,8 +12,6 @@
     "axios": "^1.8.4",
     "dotenv": "^16.4.7",
     "json-schema-traverse": "^1.0.0",
-    "langchain": "^0.0.152",
-    "openai": "^4.96.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
@@ -22,7 +20,11 @@
     "react-scripts": "5.0.1",
     "serverless-http": "^3.2.0",
     "supabase": "^2.20.5",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "@langchain/openai": "^0.1.0",
+    "@langchain/core": "^0.1.0",
+    "openai": "^4.24.1",
+    "langchain": "^0.1.0"
   },
   "scripts": {
     "start": "react-scripts start",
