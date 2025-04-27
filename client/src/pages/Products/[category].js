@@ -1,8 +1,9 @@
 import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import CategoryKnowledge from '../../components/CategoryKnoweldge/CategoryKnoweldge';
 import Header from '../../components/Header/Header';
+import PropTypes from 'prop-types';
 import '../../styles/category.css';
 
 const CategoryPage = () => {
@@ -11,49 +12,58 @@ const CategoryPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        if (!category) {
-          throw new Error('No category specified');
-        }
-
-        setLoading(true);
-        setError(null);
-
-        const normalizedCategory = category.toLowerCase().trim();
-
-        const { data, error: queryError } = await supabase
-          .from('products')
-          .select('*')
-          .ilike('category', `%${normalizedCategory}%`)
-          .limit(5);
-
-        if (queryError) throw queryError;
-
-        setProducts(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error('Error fetching products:', err);
-        setError(err.message);
-        setProducts([]);
-      } finally {
-        setLoading(false);
+  const fetchProducts = useCallback(async () => {
+    try {
+      if (!category) {
+        throw new Error('No category specified');
       }
+
+      setLoading(true);
+      setError(null);
+
+      const normalizedCategory = category.toLowerCase().trim();
+
+      const { data, error: queryError } = await supabase
+        .from('products')
+        .select('*')
+        .ilike('category', `%${normalizedCategory}%`)
+        .limit(5);
+
+      if (queryError) throw queryError;
+
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error fetching products:', err);
+      setError(err.message);
+      setProducts([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [category]);
+
+  useEffect(() => {
+    let isMounted = true;
+    
+    const loadData = async () => {
+      await fetchProducts();
     };
 
-    fetchProducts();
-  }, [category]);
+    if (isMounted) loadData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [fetchProducts]);
 
   const handleRetry = () => {
     setError(null);
-    setLoading(true);
     fetchProducts();
   };
 
   if (loading) {
     return (
       <div className="loading-container">
-        <div className="loading-spinner"></div>
+        <div className="loading-spinner" aria-label="Loading"></div>
         <p>Loading {category} products...</p>
       </div>
     );
@@ -62,8 +72,12 @@ const CategoryPage = () => {
   if (error) {
     return (
       <div className="error-container">
-        <p>Error loading products: {error}</p>
-        <button onClick={handleRetry} className="retry-button">
+        <p className="error-message">Error loading products: {error}</p>
+        <button 
+          onClick={handleRetry} 
+          className="retry-button"
+          aria-label="Retry loading products"
+        >
           Try Again
         </button>
       </div>
@@ -74,12 +88,18 @@ const CategoryPage = () => {
     <>
       <Header />
       <div className="category-page">
-        <h1 className="category-page-title">{category} Products</h1>
+        <h1 className="category-page-title" aria-label={`${category} products`}>
+          {category} Products
+        </h1>
 
         <div className="products-grid">
           {products.length > 0 ? (
             products.map(product => (
-              <div key={product.id} className="product-card">
+              <div 
+                key={product.id} 
+                className="product-card"
+                aria-label={`Product: ${product.name}`}
+              >
                 <div className="product-info">
                   <h3>{product.name || 'Unnamed Product'}</h3>
                   <p className="product-description">
@@ -108,6 +128,10 @@ const CategoryPage = () => {
       </div>
     </>
   );
+};
+
+CategoryPage.propTypes = {
+  category: PropTypes.string
 };
 
 export default CategoryPage;
