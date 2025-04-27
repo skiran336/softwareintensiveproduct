@@ -9,43 +9,63 @@ const CategoryPage = () => {
   const { category } = useParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        console.log("Fetching products for category:", category);
+        if (!category) {
+          throw new Error('No category specified');
+        }
 
-        // Normalize category (optional based on your DB structure)
-        const normalizedCategory = category.charAt(0).toUpperCase() + category.slice(1).toLowerCase();
+        setLoading(true);
+        setError(null);
 
-        const { data, error } = await supabase
+        const normalizedCategory = category.toLowerCase().trim();
+
+        const { data, error: queryError } = await supabase
           .from('products')
           .select('*')
           .ilike('category', `%${normalizedCategory}%`)
           .limit(5);
 
-        if (error) throw error;
+        if (queryError) throw queryError;
 
-        console.log("Fetched Products:", data);
-        setProducts(data);
-      } catch (error) {
-        console.error('Error fetching products:', error.message);
+        setProducts(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Error fetching products:', err);
+        setError(err.message);
+        setProducts([]);
       } finally {
         setLoading(false);
       }
     };
 
-    if (category) {
-      setLoading(true);   
-      fetchProducts();
-    }
+    fetchProducts();
   }, [category]);
+
+  const handleRetry = () => {
+    setError(null);
+    setLoading(true);
+    fetchProducts();
+  };
 
   if (loading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Loading products...</p>
+        <p>Loading {category} products...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="error-container">
+        <p>Error loading products: {error}</p>
+        <button onClick={handleRetry} className="retry-button">
+          Try Again
+        </button>
       </div>
     );
   }
@@ -61,16 +81,16 @@ const CategoryPage = () => {
             products.map(product => (
               <div key={product.id} className="product-card">
                 <div className="product-info">
-                  <h3>{product.name}</h3>
-                  <p className="product-description">{product.description}</p>
+                  <h3>{product.name || 'Unnamed Product'}</h3>
+                  <p className="product-description">
+                    {product.description || 'No description available'}
+                  </p>
 
                   <div className="product-meta">
                     <span>
-                      OS: {
-                        Array.isArray(product.operating_systems)
-                          ? product.operating_systems.join(', ')
-                          : product.operating_systems || 'N/A'
-                      }
+                      OS: {Array.isArray(product.operating_systems) 
+                        ? product.operating_systems.join(', ') 
+                        : product.operating_systems || 'N/A'}
                     </span>
                     <span>
                       Version: {product.latest_version || product.versions || 'N/A'}
@@ -80,7 +100,7 @@ const CategoryPage = () => {
               </div>
             ))
           ) : (
-            <p>No products found for {category}.</p>
+            <p className="no-products">No products found for {category}.</p>
           )}
         </div>
 
