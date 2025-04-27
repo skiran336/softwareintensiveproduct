@@ -1,7 +1,7 @@
 import { ChatOpenAI } from "@langchain/openai";
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { ConversationalRetrievalQAChain } from "langchain/chains";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { OpenAIEmbeddings } from "@langchain/openai";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import fs from 'fs/promises';
 import path from 'path';
