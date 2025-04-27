@@ -4,7 +4,7 @@ import '../../styles/CategoryCard.css';
 const CategoryCard = ({ category }) => {
   return (
     <Link 
-      to={`/search?category=${category.name}`} 
+      to={`/category/${category.name}`} 
       className="category-card"
     >
       <div 
@@ -14,7 +14,7 @@ const CategoryCard = ({ category }) => {
         <div className="category-overlay">
           <h3 className="category-title">{category.name}</h3>
           <p className="category-description">{category.description}</p>
-          <span className="view-more">View Products →</span>
+          <span className="view-more">Click to learn more about.. →</span>
         </div>
       </div>
     </Link>

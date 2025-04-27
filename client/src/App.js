@@ -10,6 +10,7 @@ import Profile from './pages/Profile/Profile'
 import ComparePage from './pages/Compare/Compare';
 import Favorites from './pages/Favourites/Favorites';
 import Chatbot from './components/chatbot/chatbot';
+import CategoryPage from './pages/Products/[category]';
 import './styles/globals.css'
 
 function App() {
@@ -26,6 +27,14 @@ function App() {
           <Route path="/compare" element={<PrivateRoute><ComparePage /></PrivateRoute>} />
           <Route path='/favourites' element= {<PrivateRoute><Favorites /></PrivateRoute>} />
           <Route path='/chat' element= {<PrivateRoute><Chatbot /></PrivateRoute>} />
+          <Route 
+            path="/category/:category" 
+            element={
+              <PrivateRoute>
+                <CategoryPage />
+              </PrivateRoute>
+            } 
+          />
         </Routes>
       </AuthProvider>
     </Router>

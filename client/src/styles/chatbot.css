@@ -1,7 +1,7 @@
 .chatbot-container {
     max-width: 800px;
     margin: 2rem auto;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #6d6969;
     border-radius: 8px;
     overflow: hidden;
   }
@@ -70,4 +70,72 @@
   
   .chat-input button:disabled {
     background: #cccccc;
+  }
+
+  .chatbot-heading {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(90deg, #255c83, #4788b4);
+    -webkit-background-clip: text;
+    color: transparent;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .chatbot-subheading {
+    text-align: center;
+    font-size: 1rem;
+    color: #555;
+    margin-top: -1rem;
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.4;
+  }
+
+  .sender-label {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #555;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+  
+  .loading-dots span {
+    animation: blink 1.4s infinite both;
+  }
+  .loading-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .loading-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  
+  @keyframes blink {
+    0%, 20% {
+      color: transparent;
+    }
+    50% {
+      color: #555;
+    }
+    100% {
+      color: transparent;
+    }
+  }
+  
+  
+  @media (max-width: 600px) {
+    .chatbot-subheading {
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .chatbot-heading {
+      font-size: 1.6rem;
+      margin-bottom: 1rem;
+    }
   }

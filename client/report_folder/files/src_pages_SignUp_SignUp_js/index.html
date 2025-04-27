@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Plato - src/pages/SignUp/SignUp.js</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="../../assets/css/vendor/morris.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/bootstrap.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/font-awesome.css" rel="stylesheet">
+  <link href="../../assets/css/vendor/codemirror.css" rel="stylesheet">
+  <link href="../../assets/css/plato.css" rel="stylesheet">
+  <link href="../../assets/css/plato-file.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="navbar navbar-fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="http://github.com/es-analysis/plato">Plato on Github</a>
+    <ul class="nav navbar-nav">
+      <li>
+        <a href="../../index.html">Report Home</a>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div class="jumbotron">
+  <div class="container">
+    <h1>src/pages/SignUp/SignUp.js</h1>
+  </div>
+</div>
+
+<div class="container aggregate-stats">
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Maintainability <a href="http://blogs.msdn.com/b/codeanalysis/archive/2007/11/20/maintainability-index-range-and-meaning.aspx"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="A value between 0 and 100 that represents the relative ease of maintaining the code. A high value means better maintainability." data-original-title="Maintainability Index"  data-container="body"></i></a></h2>
+      <p class="stat">75.28</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Lines of code <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h2>
+      <p class="stat">169</p>
+    </div>
+  </div>
+  <div class="row historical">
+    <div class="col-md-6">
+      <p id="chart_historical_maint" class="chart"></p>
+    </div>
+    <div class="col-md-6">
+      <p id="chart_historical_sloc" class="chart"></p>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h2 class="header">Difficulty  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="The difficulty measure is related to the difficulty of the program to write or understand." data-original-title="Difficulty" data-container="body"></i></a></h2>
+      <p class="stat">30.07</p>
+    </div>
+    <div class="col-md-6">
+      <h2 class="header">Estimated Errors  <a href="http://en.wikipedia.org/wiki/Halstead_complexity_measures"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Halstead's delivered bugs is an estimate for the number of errors in the implementation." data-original-title="Delivered Bugs" data-container="body"></i></a></h2>
+      <p class="stat">0.81</p>
+    </div>
+  </div>
+</div>
+
+<div class="container charts">
+  <div class="row">
+    <h2 class="header">Function weight</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-6">
+      <h3 class="chart-header">By Complexity <a href="http://en.wikipedia.org/wiki/Cyclomatic_complexity"><i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="This metric counts the number of distinct paths through a block of code. Lower values are better." data-original-title="Cyclomatic Complexity" data-container="body"></i></a></h3>
+      <div id="fn-by-complexity" class="stat"></div>
+    </div>
+    <div class="col-md-6">
+      <h3 class="chart-header">By SLOC  <i class="icon icon-info-sign" rel="popover" data-placement="top" data-trigger="hover" data-content="Source Lines of Code / Logical Lines of Code" data-original-title="SLOC/LSLOC" data-container="body"></i></h3>
+      <div id="fn-by-sloc" class="stat"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row">
+    <textarea id="file-source" class="col-md-12">// src/pages/Signup/Signup.js
+import { useState } from &#039;react&#039;;
+import { useAuth } from &#039;../../contexts/AuthContext&#039;;
+import { useNavigate, Link } from &#039;react-router-dom&#039;;
+import &#039;../../styles/SignUp.css&#039;;
+
+const professions = [
+    &#039;Student&#039;,
+    &#039;Software Engineer&#039;,
+    &#039;Software Manager&#039;,
+    &#039;Product Owner&#039;,
+    &#039;Product Designer&#039;,
+    &#039;Other&#039;
+  ];
+
+export default function Signup() {
+  const[firstName, setFirstName] = useState(&#039;&#039;);
+  const[lastName, setLastName] = useState(&#039;&#039;);
+  const[phoneNumber, setPhoneNumber] = useState(&#039;&#039;);
+  const [email, setEmail] = useState(&#039;&#039;);
+  const [password, setPassword] = useState(&#039;&#039;);
+  const [confirmPassword, setConfirmPassword] = useState(&#039;&#039;);
+  const [username, setUsername] = useState(&#039;&#039;);
+  const navigate = useNavigate();
+  const [selectedProfession, setSelectedProfession] = useState(&#039;&#039;);
+  const [customProfession, setCustomProfession] = useState(&#039;&#039;);
+  
+  const { signUp, loading, error } = useAuth();
+
+  const handleProfessionChange = (e) =&gt; {
+    setSelectedProfession(e.target.value);
+  };
+
+  const handleSubmit = async (e) =&gt; {
+    e.preventDefault();
+    if (password !== confirmPassword) {
+      alert(&quot;Passwords don&#039;t match!&quot;);
+      return;
+    }
+    try {
+        const fullName = `${firstName} ${lastName}`.trim();
+        const finalProfession = selectedProfession === &#039;Other&#039; 
+        ? customProfession 
+        : selectedProfession;
+
+      if (!finalProfession) {
+        throw new Error(&#039;Please select a profession&#039;);
+      }
+        await signUp({
+            email,
+            password,
+            name: fullName,
+            phone_number: phoneNumber,
+            profession: finalProfession
+          });
+      navigate(&#039;/login&#039;);
+    } catch (error) {
+      console.error(&#039;Signup failed:&#039;, error);
+    }
+  };
+
+  return (
+    &lt;div className= &quot;signup-background&quot;&gt;
+        &lt;div className=&quot;signup-container&quot;&gt;
+        &lt;h2&gt;Create SIP Finder Account&lt;/h2&gt;
+        {error &amp;&amp; &lt;div className=&quot;error-message&quot;&gt;{error}&lt;/div&gt;}
+        &lt;form className=&quot;signup-form&quot; onSubmit={handleSubmit}&gt;
+        &lt;input
+            type=&quot;text&quot;
+            placeholder=&quot;First Name&quot;
+            value={firstName}
+            onChange={(e) =&gt; setFirstName(e.target.value)}
+            disabled={loading}
+            required
+            /&gt;
+        &lt;input
+            type=&quot;text&quot;
+            placeholder=&quot;Last Name&quot;
+            value={lastName}
+            onChange={(e) =&gt; setLastName(e.target.value)}
+            disabled={loading}
+            required
+            /&gt;
+        &lt;input
+            type=&quot;text&quot;
+            placeholder=&quot;Phone Number&quot;
+            value={phoneNumber}
+            onChange={(e) =&gt; setPhoneNumber(e.target.value)}
+            disabled={loading}
+            required
+            /&gt;
+            &lt;input
+            type=&quot;text&quot;
+            placeholder=&quot;Username&quot;
+            value={username}
+            onChange={(e) =&gt; setUsername(e.target.value)}
+            disabled={loading}
+            required
+            /&gt;
+            &lt;input
+            type=&quot;email&quot;
+            placeholder=&quot;Email&quot;
+            value={email}
+            onChange={(e) =&gt; setEmail(e.target.value)}
+            disabled={loading}
+            required
+            /&gt;
+            &lt;input
+            type=&quot;password&quot;
+            placeholder=&quot;Password&quot;
+            value={password}
+            onChange={(e) =&gt; setPassword(e.target.value)}
+            disabled={loading}
+            required
+            /&gt;
+            &lt;input
+            type=&quot;password&quot;
+            placeholder=&quot;Confirm Password&quot;
+            value={confirmPassword}
+            onChange={(e) =&gt; setConfirmPassword(e.target.value)}
+            disabled={loading}
+            required
+            /&gt;
+            &lt;div className=&quot;profession-section&quot;&gt;
+                &lt;label&gt;Please select your profession:&lt;/label&gt;
+                &lt;div className=&quot;radio-group&quot;&gt;
+                    {professions.map((profession) =&gt; (
+                    &lt;label key={profession} className=&quot;radio-option&quot;&gt;
+                        &lt;input
+                        type=&quot;radio&quot;
+                        name=&quot;profession&quot;
+                        value={profession}
+                        checked={selectedProfession === profession}
+                        onChange={handleProfessionChange}
+                        required
+                        /&gt;
+                        &lt;span className=&quot;radio-custom&quot;&gt;&lt;/span&gt;
+                        &lt;span&gt;{profession}&lt;/span&gt;
+                    &lt;/label&gt;
+                    ))}
+                &lt;/div&gt;
+                
+                {selectedProfession === &#039;Other&#039; &amp;&amp; (
+                    &lt;div className=&quot;custom-profession&quot;&gt;
+                    &lt;input
+                        type=&quot;text&quot;
+                        value={customProfession}
+                        onChange={(e) =&gt; setCustomProfession(e.target.value)}
+                        placeholder=&quot;Please specify your profession&quot;
+                        required={selectedProfession === &#039;Other&#039;}
+                    /&gt;
+            &lt;/div&gt;
+  )}
+&lt;/div&gt;
+            &lt;button 
+            type=&quot;submit&quot; 
+            disabled={loading}
+            className={loading ? &#039;loading&#039; : &#039;&#039;}
+            &gt;
+            {loading ? &#039;Creating account...&#039; : &#039;Sign Up&#039;}
+            &lt;/button&gt;
+        &lt;/form&gt;
+        &lt;div className=&quot;login-link&quot;&gt;
+            Already have an account? &lt;Link to=&quot;/login&quot;&gt;Log in&lt;/Link&gt;
+        &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}</textarea>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <p>.</p>
+  </div>
+</footer>
+
+<script type="text/html" id="complexity-popover-template">
+  <div class="complexity-notice">
+    Complexity : {{ cyclomatic }} <br>
+    Length : {{ halstead.length }} <br>
+    Difficulty : {{ halstead.difficulty.toFixed(2) }} <br>
+    Est # bugs : {{ halstead.bugs.toFixed(2) }}<br>
+  </div>
+</script>
+
+<script type="text/javascript" src="../../assets/scripts/bundles/core-bundle.js"></script>
+<script type="text/javascript" src="../../assets/scripts/bundles/codemirror.js"></script>
+<script type="text/javascript" src="../../assets/scripts/codemirror.markpopovertext.js"></script>
+<script type="text/javascript" src="report.js"></script>
+<script type="text/javascript" src="report.history.js"></script>
+<script type="text/javascript" src="../../assets/scripts/plato-file.js"></script>
+</body>
+</html>
