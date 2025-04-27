@@ -8,6 +8,14 @@ import path from 'path';
 
 let cachedVectorStore = null;
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '1mb',
+    },
+  },
+};
+
 export default async function handler(req, res) {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -21,38 +29,42 @@ export default async function handler(req, res) {
 
   // Method check
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed. Use POST.' });
+    res.setHeader('Allow', ['POST']);
+    return res.status(405).json({ 
+      error: 'Method Not Allowed',
+      allowedMethods: ['POST']
+    });
   }
 
   try {
-    // Parse request body
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { question } = body;
-
-    if (!question) {
-      return res.status(400).json({ error: 'Question is required.' });
+    // Validate request body
+    const { question } = req.body;
+    
+    if (!question?.trim()) {
+      return res.status(400).json({ error: 'Question required' });
     }
 
-    // Debug logs
-    console.log(`Processing question: "${question}"`);
+    if (question.length > 500) {
+      return res.status(400).json({ error: 'Question too long' });
+    }
 
     // Initialize vector store
     if (!cachedVectorStore) {
-      console.log('Initializing vector store...');
       const docPath = path.join(process.cwd(), 'public/docs/sip_data.txt');
       const rawText = await fs.readFile(docPath, 'utf8');
       
-      const splitter = new RecursiveCharacterTextSplitter({ 
-        chunkSize: 400, 
-        chunkOverlap: 20 
+      const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 400,
+        chunkOverlap: 20,
       });
       
       const docs = await splitter.createDocuments([rawText]);
       
       cachedVectorStore = await MemoryVectorStore.fromDocuments(
         docs,
-        new OpenAIEmbeddings({ 
-          openAIApiKey: process.env.OPENAI_API_KEY 
+        new OpenAIEmbeddings({
+          openAIApiKey: process.env.OPENAI_API_KEY,
+          modelName: 'text-embedding-ada-002'
         })
       );
     }
@@ -61,28 +73,34 @@ export default async function handler(req, res) {
     const model = new ChatOpenAI({
       openAIApiKey: process.env.OPENAI_API_KEY,
       modelName: 'gpt-3.5-turbo',
-      temperature: 0,
-      maxTokens: 300
+      temperature: 0.2,
+      maxTokens: 500,
+      timeout: 10000 // 10 seconds
     });
 
     const chain = RetrievalQAChain.fromLLM(
-      model, 
-      cachedVectorStore.asRetriever()
+      model,
+      cachedVectorStore.asRetriever(3) // Return top 3 matches
     );
 
-    const response = await chain.call({ query: question });
+    const response = await chain.call({
+      query: question,
+    });
 
     return res.status(200).json({
       answer: response.text,
-      sources: ['sip_data.txt']
+      sources: ['sip_data.txt'],
+      timestamp: new Date().toISOString()
     });
 
   } catch (error) {
-    console.error('Error:', error);
-    return res.status(500).json({ 
+    console.error('API Error:', error);
+    return res.status(500).json({
       error: 'Internal Server Error',
       message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      ...(process.env.NODE_ENV === 'development' && {
+        stack: error.stack
+      })
     });
   }
 }
