@@ -43,15 +43,19 @@ const CategoryPage = () => {
 
   useEffect(() => {
     let isMounted = true;
-    
+    const controller = new AbortController();
+
     const loadData = async () => {
-      await fetchProducts();
+      if (isMounted) {
+        await fetchProducts();
+      }
     };
 
-    if (isMounted) loadData();
+    loadData();
 
     return () => {
       isMounted = false;
+      controller.abort();
     };
   }, [fetchProducts]);
 
