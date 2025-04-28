@@ -25,6 +25,7 @@ export default function Profile() {
         .eq('id', user.id)
         .single();
 
+        
       if (error) throw error;
       if (data) {
         setName(data.name);
