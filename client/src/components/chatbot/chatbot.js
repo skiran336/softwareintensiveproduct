@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import '../../styles/chatbot.css';
-
+import Header from '../Header/Header';
 export default function ChatBot() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
@@ -51,6 +51,7 @@ export default function ChatBot() {
 
   return (
     <div className="chatbot-container">
+    <><Header/> </>
       <div className="chat-messages">
         {messages.map((msg, i) => (
           <div key={i} className={`message ${msg.isBot ? 'bot' : 'user'}`}>
