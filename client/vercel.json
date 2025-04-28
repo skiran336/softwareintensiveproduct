@@ -1,0 +1,9 @@
+{
+    "functions": {
+      "api/chat.js": {
+        "includeFiles": [
+          "node_modules/@langchain/**"
+        ]
+      }
+    }
+  }
