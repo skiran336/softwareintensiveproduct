@@ -50,8 +50,9 @@ export default function ChatBot() {
   };
 
   return (
+    <><Header/> 
     <div className="chatbot-container">
-    <><Header/> </>
+    
       <div className="chat-messages">
         {messages.map((msg, i) => (
           <div key={i} className={`message ${msg.isBot ? 'bot' : 'user'}`}>
@@ -93,5 +94,6 @@ export default function ChatBot() {
         </button>
       </form>
     </div>
+    </>
   );
 }
