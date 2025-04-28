@@ -21,4 +21,5 @@ const CategoryCard = ({ category }) => {
   );
 };
 
+
 export default CategoryCard;
