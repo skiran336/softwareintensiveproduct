@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import '../../styles/chatbot.css';
 import Header from '../Header/Header';
+
 export default function ChatBot() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([]);
@@ -41,7 +42,7 @@ export default function ChatBot() {
     } catch (error) {
       setMessages(prev => [
         ...prev,
-        { text: "Sorry, I'm having trouble connecting.", isBot: true }
+        { text: "Sorry, I'm having trouble connecting. Please try again later.", isBot: true }
       ]);
     } finally {
       setInput('');
@@ -50,50 +51,56 @@ export default function ChatBot() {
   };
 
   return (
-    <><Header/> 
-    <div className="chatbot-container">
-    
-      <div className="chat-messages">
-        {messages.map((msg, i) => (
-          <div key={i} className={`message ${msg.isBot ? 'bot' : 'user'}`}>
-            <div className="message-content">
-              {msg.text}
-              {msg.sources && msg.sources.length > 0 && (
-                <div className="sources">
-                  <div className="source-header">Sources:</div>
-                  {msg.sources.map((source, idx) => (
-                    <div key={idx} className="source-item">
-                      {source.content}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="message bot loading">
-            <div className="loading-dots">
-              <span>.</span><span>.</span><span>.</span>
-            </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+    <>
+      <Header />
+      <div className="chatbot-container">
+        <div className="chat-header">
+          <h1> SIP Expert Assistant</h1>
+          <p>Ask me anything about Software Intensive Products</p>
+        </div>
 
-      <form className="chat-input" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about SIP..."
-          disabled={isLoading}
-        />
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Sending...' : 'Ask'}
-        </button>
-      </form>
-    </div>
+        <div className="chat-messages">
+          {messages.map((msg, i) => (
+            <div key={i} className={`message ${msg.isBot ? 'bot' : 'user'}`}>
+              <div className="message-content">
+                {msg.text}
+                {msg.sources && msg.sources.length > 0 && (
+                  <div className="sources">
+                    <div className="source-header">References:</div>
+                    {msg.sources.map((source, idx) => (
+                      <div key={idx} className="source-item">
+                        {source.content}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+          {isLoading && (
+            <div className="message bot loading">
+              <div className="loading-dots">
+                <span>.</span><span>.</span><span>.</span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
+
+        <form className="chat-input" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your question about SIP..."
+            disabled={isLoading}
+            autoFocus
+          />
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? 'Thinking...' : 'Send'}
+          </button>
+        </form>
+      </div>
     </>
   );
 }
