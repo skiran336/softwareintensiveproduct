@@ -2,8 +2,11 @@
     "functions": {
       "api/chat.js": {
         "includeFiles": [
-          "node_modules/@langchain/**"
+          "node_modules/@langchain/openai/**/*",
+          "node_modules/@langchain/community/**/*",
+          "node_modules/@langchain/core/**/*"
         ]
       }
     }
   }
+  
