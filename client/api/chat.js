@@ -1,71 +1,57 @@
-import { ChatOpenAI } from "@langchain/openai";
-import { OpenAIEmbeddings } from "@langchain/openai";
-import { ConversationalRetrievalQAChain } from "@langchain/community/chains";
-import { MemoryVectorStore } from "@langchain/community/vectorstores/memory";
-import { RecursiveCharacterTextSplitter } from "@langchain/community/text_splitter";
 import fs from 'fs/promises';
 import path from 'path';
 
-let vectorStore;
-let initializing = false;
+let vectorStore = global.vectorStore || null;
 
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const { question, history } = req.body;
+
+  if (!question) {
+    return res.status(400).json({ error: 'Missing question in request body' });
+  }
+
   try {
-    // Request validation
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method Not Allowed' });
-    }
+    // Dynamic imports
+    const { ChatOpenAI, OpenAIEmbeddings } = await import("@langchain/openai");
+    const { ConversationalRetrievalQAChain } = await import("@langchain/community/chains");
+    const { MemoryVectorStore } = await import("@langchain/community/vectorstores/memory");
+    const { RecursiveCharacterTextSplitter } = await import("@langchain/community/text_splitter");
 
-    if (!req.body?.question) {
-      return res.status(400).json({ error: 'Missing question in request body' });
-    }
-
-    // Initialize vector store
-    if (!vectorStore && !initializing) {
-      initializing = true;
+    // Initialize vector store only once (per serverless warm instance)
+    if (!vectorStore) {
       console.log("Initializing vector store...");
-      
+
       const filePath = path.join(process.cwd(), 'public', 'docs', 'sip_data.txt');
-      console.log("Knowledge base path:", filePath);
+      const knowledgeBase = await fs.readFile(filePath, 'utf8');
 
-      try {
-        await fs.access(filePath, fs.constants.R_OK);
-        const knowledgeBase = await fs.readFile(filePath, 'utf8');
-        
-        const splitter = new RecursiveCharacterTextSplitter({
-          chunkSize: 1000,
-          chunkOverlap: 200,
-        });
+      const splitter = new RecursiveCharacterTextSplitter({
+        chunkSize: 1000,
+        chunkOverlap: 200,
+      });
 
-        const docs = await splitter.createDocuments([knowledgeBase]);
-        
-        vectorStore = await MemoryVectorStore.fromDocuments(
-          docs,
-          new OpenAIEmbeddings({
-            openAIApiKey: process.env.OPENAI_API_KEY,
-            modelName: "text-embedding-ada-002"
-          })
-        );
+      const docs = await splitter.createDocuments([knowledgeBase]);
 
-        console.log("Vector store initialized successfully");
-      } catch (err) {
-        console.error("Vector store initialization failed:", err);
-        throw err;
-      } finally {
-        initializing = false;
-      }
-    } else if (initializing) {
-      return res.status(503).json({ error: 'System initializing, please try again in 10 seconds' });
+      vectorStore = await MemoryVectorStore.fromDocuments(
+        docs,
+        new OpenAIEmbeddings({
+          openAIApiKey: process.env.OPENAI_API_KEY,
+          modelName: "text-embedding-ada-002"
+        })
+      );
+
+      global.vectorStore = vectorStore;
+      console.log("Vector store ready.");
     }
 
-    // Process request
-    const { question, history } = req.body;
-    
+    // Set up Chat Model and QA Chain
     const model = new ChatOpenAI({
       openAIApiKey: process.env.OPENAI_API_KEY,
       modelName: "gpt-3.5-turbo",
@@ -92,25 +78,12 @@ export default async function handler(req, res) {
     });
 
   } catch (error) {
-    console.error("API Error Details:", {
-      error: error.message,
-      stack: error.stack,
-      environment: {
-        OPENAI_API_KEY: process.env.OPENAI_API_KEY ? "Exists" : "Missing",
-        NODE_ENV: process.env.NODE_ENV
-      }
-    });
+    console.error("API Error:", error);
 
     return res.status(500).json({ 
       error: process.env.NODE_ENV === 'development' 
         ? error.message 
-        : 'Internal server error',
-      ...(process.env.NODE_ENV === 'development' && {
-        details: {
-          stack: error.stack,
-          message: error.message
-        }
-      })
+        : 'Internal server error'
     });
   }
 }
