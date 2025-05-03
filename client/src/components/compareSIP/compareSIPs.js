@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import '../../styles/Compare.css';
 
@@ -7,7 +7,6 @@ const Compare = () => {
   const [searchTerms, setSearchTerms] = useState(['', '']);
   const [suggestions, setSuggestions] = useState([[], []]);
   const [error, setError] = useState('');
-
   const skipFetchRef = useRef([false, false]);
 
   const fetchSuggestions = useCallback(async (index) => {
@@ -135,7 +134,6 @@ const Compare = () => {
                   }
                 }}
               />
-              {/* Updated condition to check if product is selected */}
               {suggestions[index].length > 0 && !selectedProducts[index] && (
                 <ul className="suggestions-dropdown">
                   {suggestions[index].map(product => (
