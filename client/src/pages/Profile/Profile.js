@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../services/supabaseClient';
 import { Link } from 'react-router-dom';
@@ -16,8 +16,7 @@ export default function Profile() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Fetch profile data including avatar
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -25,7 +24,6 @@ export default function Profile() {
         .eq('id', user.id)
         .single();
 
-        
       if (error) throw error;
       if (data) {
         setName(data.name);
@@ -34,7 +32,7 @@ export default function Profile() {
     } catch (error) {
       setError(error.message);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {

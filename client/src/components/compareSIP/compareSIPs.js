@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import '../../styles/Compare.css';
 
@@ -10,45 +10,45 @@ const Compare = () => {
 
   const skipFetchRef = useRef([false, false]);
 
+  const fetchSuggestions = useCallback(async (index) => {
+    if (skipFetchRef.current[index]) return;
+
+    const term = searchTerms[index];
+    if (term.trim().length < 2) {
+      const newSuggestions = [...suggestions];
+      newSuggestions[index] = [];
+      setSuggestions(newSuggestions);
+      return;
+    }
+
+    try {
+      const { data, error: sbError } = await supabase
+        .from('products')
+        .select('id, name, category')
+        .or(
+          `name.ilike.%${term}%,` +
+          `category.ilike.%${term}%,` +
+          `manufacturer.ilike.%${term}%`
+        )
+        .limit(5);
+
+      if (sbError) throw sbError;
+
+      const newSuggestions = [...suggestions];
+      newSuggestions[index] = data || [];
+      setSuggestions(newSuggestions);
+    } catch (err) {
+      console.error('Suggestion fetch error:', err);
+    }
+  }, [searchTerms, suggestions]);
+
   useEffect(() => {
-    const fetchSuggestions = async (index) => {
-      if (skipFetchRef.current[index]) return;
-
-      const term = searchTerms[index];
-      if (term.trim().length < 2) {
-        const newSuggestions = [...suggestions];
-        newSuggestions[index] = [];
-        setSuggestions(newSuggestions);
-        return;
-      }
-
-      try {
-        const { data, error: sbError } = await supabase
-          .from('products')
-          .select('id, name, category')
-          .or(
-            `name.ilike.%${term}%,` +
-            `category.ilike.%${term}%,` +
-            `manufacturer.ilike.%${term}%`
-          )
-          .limit(5);
-
-        if (sbError) throw sbError;
-
-        const newSuggestions = [...suggestions];
-        newSuggestions[index] = data || [];
-        setSuggestions(newSuggestions);
-      } catch (err) {
-        console.error('Suggestion fetch error:', err);
-      }
-    };
-
     const debounceTimers = searchTerms.map((_, index) =>
       setTimeout(() => fetchSuggestions(index), 300)
     );
 
     return () => debounceTimers.forEach(timer => clearTimeout(timer));
-  }, [searchTerms, suggestions]);
+  }, [searchTerms, fetchSuggestions]);
 
   const handleSelectProduct = (index, product) => {
     const newSelection = [...selectedProducts];
