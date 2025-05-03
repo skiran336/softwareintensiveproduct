@@ -26,36 +26,53 @@ const handler = async (req, res) => {
   }
 
   try {
-    // Dynamic imports
-    const { ChatOpenAI, OpenAIEmbeddings } = await import("@langchain/openai");
-    const { ConversationalRetrievalQAChain } = await import("@langchain/community/chains");
-    const { MemoryVectorStore } = await import("@langchain/community/vectorstores/memory");
-    const { RecursiveCharacterTextSplitter } = await import("@langchain/community/text_splitter");
+    // Dynamic imports with error handling
+    let ChatOpenAI, OpenAIEmbeddings, ConversationalRetrievalQAChain, MemoryVectorStore, RecursiveCharacterTextSplitter;
+    
+    try {
+      const langchainOpenAI = await import("@langchain/openai");
+      const langchainCommunity = await import("@langchain/community");
+      const langchainTextSplitter = await import("@langchain/community/text_splitter");
+      
+      ChatOpenAI = langchainOpenAI.ChatOpenAI;
+      OpenAIEmbeddings = langchainOpenAI.OpenAIEmbeddings;
+      ConversationalRetrievalQAChain = langchainCommunity.ConversationalRetrievalQAChain;
+      MemoryVectorStore = langchainCommunity.MemoryVectorStore;
+      RecursiveCharacterTextSplitter = langchainTextSplitter.RecursiveCharacterTextSplitter;
+    } catch (importError) {
+      console.error("Import Error:", importError);
+      return res.status(500).json({ error: "Failed to load required modules" });
+    }
 
     // Initialize vector store only once (per serverless warm instance)
     if (!vectorStore) {
       console.log("Initializing vector store...");
 
-      const filePath = path.join(process.cwd(), 'public', 'docs', 'sip_data.txt');
-      const knowledgeBase = await fs.readFile(filePath, 'utf8');
+      try {
+        const filePath = path.join(process.cwd(), 'public', 'docs', 'sip_data.txt');
+        const knowledgeBase = await fs.readFile(filePath, 'utf8');
 
-      const splitter = new RecursiveCharacterTextSplitter({
-        chunkSize: 1000,
-        chunkOverlap: 200,
-      });
+        const splitter = new RecursiveCharacterTextSplitter({
+          chunkSize: 1000,
+          chunkOverlap: 200,
+        });
 
-      const docs = await splitter.createDocuments([knowledgeBase]);
+        const docs = await splitter.createDocuments([knowledgeBase]);
 
-      vectorStore = await MemoryVectorStore.fromDocuments(
-        docs,
-        new OpenAIEmbeddings({
-          openAIApiKey: process.env.OPENAI_API_KEY,
-          modelName: "text-embedding-ada-002"
-        })
-      );
+        vectorStore = await MemoryVectorStore.fromDocuments(
+          docs,
+          new OpenAIEmbeddings({
+            openAIApiKey: process.env.OPENAI_API_KEY,
+            modelName: "text-embedding-ada-002"
+          })
+        );
 
-      global.vectorStore = vectorStore;
-      console.log("Vector store ready.");
+        global.vectorStore = vectorStore;
+        console.log("Vector store ready.");
+      } catch (initError) {
+        console.error("Vector Store Initialization Error:", initError);
+        return res.status(500).json({ error: "Failed to initialize vector store" });
+      }
     }
 
     // Set up Chat Model and QA Chain
