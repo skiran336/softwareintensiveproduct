@@ -48,7 +48,7 @@ const Compare = () => {
     );
 
     return () => debounceTimers.forEach(timer => clearTimeout(timer));
-  }, [searchTerms]);
+  }, [searchTerms, suggestions]);
 
   const handleSelectProduct = (index, product) => {
     const newSelection = [...selectedProducts];

@@ -40,7 +40,7 @@ export default function Profile() {
     if (user) {
       fetchProfile();
     }
-  }, [user]);
+  }, [user, fetchProfile]);
 
   const handlePhotoUpload = async (event) => {
     try {

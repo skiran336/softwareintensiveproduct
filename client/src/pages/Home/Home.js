@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import CategoryCard from '../../components/CategoryCard/CategoryCard';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';

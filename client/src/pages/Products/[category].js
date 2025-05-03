@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import CategoryKnowledge from '../../components/CategoryKnoweldge/CategoryKnoweldge';
@@ -6,8 +6,7 @@ import Header from '../../components/Header/Header';
 import '../../styles/category.css'
 
 const CategoryPage = () => {
-const { category } = useParams();
-const navigate = useNavigate();
+  const { category } = useParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
