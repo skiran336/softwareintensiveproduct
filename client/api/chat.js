@@ -1,9 +1,13 @@
 import fs from 'fs/promises';
 import path from 'path';
+import cors from 'cors';
 
 let vectorStore = global.vectorStore || null;
 
-export default async function handler(req, res) {
+const handler = async (req, res) => {
+  // Enable CORS
+  cors()(req, res, () => {});
+
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -89,4 +93,6 @@ export default async function handler(req, res) {
         : 'Internal server error'
     });
   }
-}
+};
+
+export default handler;
