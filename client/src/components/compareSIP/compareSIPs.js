@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import '../../styles/Compare.css';
