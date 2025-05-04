@@ -118,11 +118,25 @@ export function AuthProvider({ children }) {
   };
 
   // Sign in with email and password
-  const signIn = async ({ email, password }) => {
+  const signIn = async ({ email, password, token }) => {
     try {
       setLoading(true);
       setError(null);
+  
+      // Verify hCaptcha first
+      const captchaVerification = await fetch('http://localhost:4000/api/verify-captcha', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+  
+      if (!captchaVerification.ok) {
+        throw new Error('Captcha verification failed');
+      }
+  
+      // Proceed with Supabase auth
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      
       if (error) throw error;
       return data;
     } catch (error) {
