@@ -3,6 +3,8 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 import { supabase } from '../services/supabaseClient';
 
 const AuthContext = createContext();
+const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -120,22 +122,38 @@ export function AuthProvider({ children }) {
   // Sign in with email and password
   const signIn = async ({ email, password, token }) => {
     try {
-      // Verify via Edge Function
-      const { data: captchaData, error: captchaError } = await supabase.functions.invoke(
-        'verify-captcha',
-        { body: { token } }
+      // Verify hCaptcha
+      const verification = await fetch(
+        `${SUPABASE_URL}/functions/v1/verify-captcha`, // Dynamic URL
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}` // Use env variable
+          },
+          body: JSON.stringify({ token })
+        }
       );
   
-      if (captchaError || !captchaData.success) {
-        throw new Error('Captcha verification failed');
+      const captchaData = await verification.json();
+      
+      if (!captchaData.success) {
+        throw new Error('CAPTCHA verification failed');
       }
   
-      // Proceed with auth
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      // Proceed with Supabase auth
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+  
       if (error) throw error;
       return data;
     } catch (error) {
-      setError(error.message);
+      console.error('Login error:', {
+        error: error.message,
+        captchaResponse: captchaData // Add this for debugging
+      });
       throw error;
     }
   };
