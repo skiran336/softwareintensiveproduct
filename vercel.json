@@ -7,22 +7,9 @@
       "config": {
         "distDir": "build"
       }
-    },
-    {
-      "src": "client/api/chat.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "sip_data.txt"
-        ]
-      }
     }
   ],
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "client/api/$1"
-    },
     {
       "src": "/(.*)",
       "dest": "client/build/$1"
@@ -30,14 +17,5 @@
   ],
   "env": {
     "NODE_ENV": "production"
-  },
-  "functions": {
-    "api/chat.js": {
-      "memory": 3008,
-      "maxDuration": 10,
-      "includeFiles": [
-        "sip_data.txt"
-      ]
-    }
   }
 } 
