@@ -120,30 +120,29 @@ export function AuthProvider({ children }) {
   // Sign in with email and password
   const signIn = async ({ email, password, token }) => {
     try {
-      setLoading(true);
-      setError(null);
-  
-      // Verify hCaptcha first
-      const captchaVerification = await fetch('http://localhost:4000/api/verify-captcha', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token })
+      // Verify hCaptcha directly
+      const captchaResponse = await fetch("https://hcaptcha.com/siteverify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `secret=${process.env.REACT_APP_HCAPTCHA_SECRET_KEY}&response=${token}`
       });
   
-      if (!captchaVerification.ok) {
-        throw new Error('Captcha verification failed');
-      }
+      const captchaData = await captchaResponse.json();
+      if (!captchaData.success) throw new Error('Captcha failed');
   
       // Proceed with Supabase auth
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
       if (error) throw error;
       return data;
     } catch (error) {
       setError(error.message);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
