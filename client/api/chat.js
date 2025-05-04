@@ -1,7 +1,6 @@
 import { OpenAI } from '@langchain/openai';
-import { HNSWLib } from '@langchain/community/vectorstores/hnswlib';
 import { OpenAIEmbeddings } from '@langchain/openai';
-import { RetrievalQAChain } from 'langchain/chains';
+import { HNSWLib } from '@langchain/community/vectorstores/hnswlib';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { RunnableSequence } from '@langchain/core/runnables';
@@ -10,26 +9,11 @@ import { fs } from 'fs';
 import { path } from 'path';
 import cors from 'cors';
 
-const handler = async (req, res) => {
-  // Enable CORS
-  cors()(req, res, () => {});
+// Initialize vector store only once
+let vectorStore = null;
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  try {
-    const { question, history } = req.body;
-
-    // Initialize OpenAI
-    const model = new OpenAI({
-      modelName: 'gpt-3.5-turbo',
-      temperature: 0.7,
-      openAIApiKey: process.env.OPENAI_API_KEY
-    });
-
-    // Initialize vector store
-    let vectorStore;
+const initializeVectorStore = async () => {
+  if (!vectorStore) {
     try {
       const sipData = await fs.promises.readFile(
         path.join(process.cwd(), 'sip_data.txt'),
@@ -43,8 +27,32 @@ const handler = async (req, res) => {
       );
     } catch (error) {
       console.error('Error initializing vector store:', error);
-      return res.status(500).json({ error: 'Error initializing vector store' });
+      throw error;
     }
+  }
+  return vectorStore;
+};
+
+const handler = async (req, res) => {
+  // Enable CORS
+  cors()(req, res, () => {});
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  try {
+    const { question, history } = req.body;
+
+    // Initialize vector store
+    const store = await initializeVectorStore();
+
+    // Initialize OpenAI
+    const model = new OpenAI({
+      modelName: 'gpt-3.5-turbo',
+      temperature: 0.7,
+      openAIApiKey: process.env.OPENAI_API_KEY
+    });
 
     // Create the chain
     const chain = RunnableSequence.from([
@@ -52,7 +60,7 @@ const handler = async (req, res) => {
         question: (input) => input.question,
         chat_history: (input) => input.chat_history,
         context: async (input) => {
-          const relevantDocs = await vectorStore.similaritySearch(input.question, 3);
+          const relevantDocs = await store.similaritySearch(input.question, 3);
           return formatDocumentsAsString(relevantDocs);
         },
       },

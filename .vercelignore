@@ -1,0 +1,12 @@
+node_modules
+.git
+.next
+.env
+*.log
+*.md
+*.test.js
+*.spec.js
+coverage
+dist
+build
+.DS_Store 
