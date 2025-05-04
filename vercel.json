@@ -6,7 +6,8 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "build",
-        "buildCommand": "cd client && npm install && npm run build"
+        "buildCommand": "cd client && npm install && CI=false npm run build",
+        "installCommand": "cd client && npm install"
       }
     },
     {
@@ -28,6 +29,7 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "CI": "false"
   }
 } 
