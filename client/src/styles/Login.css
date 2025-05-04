@@ -264,3 +264,9 @@
     font-size: 1.75rem;
   }
 }
+
+.captcha-container {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+}
