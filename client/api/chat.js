@@ -1,114 +1,91 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { OpenAI } from '@langchain/openai';
+import { HNSWLib } from '@langchain/community/vectorstores/hnswlib';
+import { OpenAIEmbeddings } from '@langchain/openai';
+import { RetrievalQAChain } from 'langchain/chains';
+import { PromptTemplate } from '@langchain/core/prompts';
+import { StringOutputParser } from '@langchain/core/output_parsers';
+import { RunnableSequence } from '@langchain/core/runnables';
+import { formatDocumentsAsString } from 'langchain/util/document';
+import { fs } from 'fs';
+import { path } from 'path';
 import cors from 'cors';
-
-let vectorStore = global.vectorStore || null;
 
 const handler = async (req, res) => {
   // Enable CORS
   cors()(req, res, () => {});
 
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    return res.status(200).end();
-  }
-
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
-  }
-
-  const { question, history } = req.body;
-
-  if (!question) {
-    return res.status(400).json({ error: 'Missing question in request body' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    // Dynamic imports with error handling
-    let ChatOpenAI, OpenAIEmbeddings, ConversationalRetrievalQAChain, MemoryVectorStore, RecursiveCharacterTextSplitter;
-    
-    try {
-      const langchainOpenAI = await import("@langchain/openai");
-      const langchainCommunity = await import("@langchain/community");
-      const langchainTextSplitter = await import("@langchain/community/text_splitter");
-      
-      ChatOpenAI = langchainOpenAI.ChatOpenAI;
-      OpenAIEmbeddings = langchainOpenAI.OpenAIEmbeddings;
-      ConversationalRetrievalQAChain = langchainCommunity.ConversationalRetrievalQAChain;
-      MemoryVectorStore = langchainCommunity.MemoryVectorStore;
-      RecursiveCharacterTextSplitter = langchainTextSplitter.RecursiveCharacterTextSplitter;
-    } catch (importError) {
-      console.error("Import Error:", importError);
-      return res.status(500).json({ error: "Failed to load required modules" });
-    }
+    const { question, history } = req.body;
 
-    // Initialize vector store only once (per serverless warm instance)
-    if (!vectorStore) {
-      console.log("Initializing vector store...");
-
-      try {
-        const filePath = path.join(process.cwd(), 'public', 'docs', 'sip_data.txt');
-        const knowledgeBase = await fs.readFile(filePath, 'utf8');
-
-        const splitter = new RecursiveCharacterTextSplitter({
-          chunkSize: 1000,
-          chunkOverlap: 200,
-        });
-
-        const docs = await splitter.createDocuments([knowledgeBase]);
-
-        vectorStore = await MemoryVectorStore.fromDocuments(
-          docs,
-          new OpenAIEmbeddings({
-            openAIApiKey: process.env.OPENAI_API_KEY,
-            modelName: "text-embedding-ada-002"
-          })
-        );
-
-        global.vectorStore = vectorStore;
-        console.log("Vector store ready.");
-      } catch (initError) {
-        console.error("Vector Store Initialization Error:", initError);
-        return res.status(500).json({ error: "Failed to initialize vector store" });
-      }
-    }
-
-    // Set up Chat Model and QA Chain
-    const model = new ChatOpenAI({
-      openAIApiKey: process.env.OPENAI_API_KEY,
-      modelName: "gpt-3.5-turbo",
+    // Initialize OpenAI
+    const model = new OpenAI({
+      modelName: 'gpt-3.5-turbo',
       temperature: 0.7,
-      maxTokens: 500,
+      openAIApiKey: process.env.OPENAI_API_KEY
     });
 
-    const chain = ConversationalRetrievalQAChain.fromLLM(
-      model,
-      vectorStore.asRetriever(3)
-    );
+    // Initialize vector store
+    let vectorStore;
+    try {
+      const sipData = await fs.promises.readFile(
+        path.join(process.cwd(), 'sip_data.txt'),
+        'utf-8'
+      );
+      const texts = sipData.split('\n').filter(text => text.trim());
+      vectorStore = await HNSWLib.fromTexts(
+        texts,
+        texts.map((_, i) => ({ id: i })),
+        new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
+      );
+    } catch (error) {
+      console.error('Error initializing vector store:', error);
+      return res.status(500).json({ error: 'Error initializing vector store' });
+    }
 
-    const response = await chain.call({
+    // Create the chain
+    const chain = RunnableSequence.from([
+      {
+        question: (input) => input.question,
+        chat_history: (input) => input.chat_history,
+        context: async (input) => {
+          const relevantDocs = await vectorStore.similaritySearch(input.question, 3);
+          return formatDocumentsAsString(relevantDocs);
+        },
+      },
+      {
+        input: new PromptTemplate({
+          inputVariables: ['context', 'question', 'chat_history'],
+          template: `You are a helpful assistant for SIP (Systematic Investment Plan) products. 
+          Use the following pieces of context to answer the question at the end.
+          If you don't know the answer, just say that you don't know, don't try to make up an answer.
+          
+          Context: {context}
+          
+          Chat History: {chat_history}
+          
+          Question: {question}
+          
+          Helpful Answer:`
+        }),
+      },
+      model,
+      new StringOutputParser(),
+    ]);
+
+    // Run the chain
+    const response = await chain.invoke({
       question,
       chat_history: history || [],
     });
 
-    return res.status(200).json({
-      answer: response.text,
-      sources: response.sourceDocuments?.map(d => ({
-        content: d.pageContent.substring(0, 150) + '...',
-        metadata: d.metadata
-      })) || []
-    });
-
+    return res.status(200).json({ answer: response });
   } catch (error) {
-    console.error("API Error:", error);
-
-    return res.status(500).json({ 
-      error: process.env.NODE_ENV === 'development' 
-        ? error.message 
-        : 'Internal server error'
-    });
+    console.error('Error in chat API:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
