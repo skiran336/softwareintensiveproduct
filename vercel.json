@@ -12,10 +12,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/client/build/$1"
+      "dest": "client/build/$1"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 } 
