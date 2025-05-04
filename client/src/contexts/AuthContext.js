@@ -120,24 +120,18 @@ export function AuthProvider({ children }) {
   // Sign in with email and password
   const signIn = async ({ email, password, token }) => {
     try {
-      // Verify hCaptcha directly
-      const captchaResponse = await fetch("https://hcaptcha.com/siteverify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: `secret=${process.env.REACT_APP_HCAPTCHA_SECRET_KEY}&response=${token}`
-      });
+      // Verify via Edge Function
+      const { data: captchaData, error: captchaError } = await supabase.functions.invoke(
+        'verify-captcha',
+        { body: { token } }
+      );
   
-      const captchaData = await captchaResponse.json();
-      if (!captchaData.success) throw new Error('Captcha failed');
+      if (captchaError || !captchaData.success) {
+        throw new Error('Captcha verification failed');
+      }
   
-      // Proceed with Supabase auth
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
-      
+      // Proceed with auth
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       return data;
     } catch (error) {
