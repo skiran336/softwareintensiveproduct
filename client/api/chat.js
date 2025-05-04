@@ -1,36 +1,25 @@
-import { OpenAI } from '@langchain/openai';
-import { OpenAIEmbeddings } from '@langchain/openai';
-import { HNSWLib } from '@langchain/community/vectorstores/hnswlib';
-import { PromptTemplate } from '@langchain/core/prompts';
-import { StringOutputParser } from '@langchain/core/output_parsers';
-import { RunnableSequence } from '@langchain/core/runnables';
-import { formatDocumentsAsString } from 'langchain/util/document';
-import { fs } from 'fs';
-import { path } from 'path';
-import cors from 'cors';
+const { OpenAI } = require('@langchain/openai');
+const cors = require('cors');
+const fs = require('fs').promises;
+const path = require('path');
 
 // Initialize vector store only once
-let vectorStore = null;
+let knowledgeBase = null;
 
-const initializeVectorStore = async () => {
-  if (!vectorStore) {
+const initializeKnowledgeBase = async () => {
+  if (!knowledgeBase) {
     try {
-      const sipData = await fs.promises.readFile(
+      const sipData = await fs.readFile(
         path.join(process.cwd(), 'sip_data.txt'),
         'utf-8'
       );
-      const texts = sipData.split('\n').filter(text => text.trim());
-      vectorStore = await HNSWLib.fromTexts(
-        texts,
-        texts.map((_, i) => ({ id: i })),
-        new OpenAIEmbeddings({ openAIApiKey: process.env.OPENAI_API_KEY })
-      );
+      knowledgeBase = sipData.split('\n').filter(text => text.trim());
     } catch (error) {
-      console.error('Error initializing vector store:', error);
+      console.error('Error initializing knowledge base:', error);
       throw error;
     }
   }
-  return vectorStore;
+  return knowledgeBase;
 };
 
 const handler = async (req, res) => {
@@ -44,8 +33,8 @@ const handler = async (req, res) => {
   try {
     const { question, history } = req.body;
 
-    // Initialize vector store
-    const store = await initializeVectorStore();
+    // Initialize knowledge base
+    const kb = await initializeKnowledgeBase();
 
     // Initialize OpenAI
     const model = new OpenAI({
@@ -54,41 +43,26 @@ const handler = async (req, res) => {
       openAIApiKey: process.env.OPENAI_API_KEY
     });
 
-    // Create the chain
-    const chain = RunnableSequence.from([
-      {
-        question: (input) => input.question,
-        chat_history: (input) => input.chat_history,
-        context: async (input) => {
-          const relevantDocs = await store.similaritySearch(input.question, 3);
-          return formatDocumentsAsString(relevantDocs);
-        },
-      },
-      {
-        input: new PromptTemplate({
-          inputVariables: ['context', 'question', 'chat_history'],
-          template: `You are a helpful assistant for SIP (Systematic Investment Plan) products. 
-          Use the following pieces of context to answer the question at the end.
-          If you don't know the answer, just say that you don't know, don't try to make up an answer.
-          
-          Context: {context}
-          
-          Chat History: {chat_history}
-          
-          Question: {question}
-          
-          Helpful Answer:`
-        }),
-      },
-      model,
-      new StringOutputParser(),
-    ]);
+    // Create context from knowledge base
+    const context = kb.join('\n');
 
-    // Run the chain
-    const response = await chain.invoke({
-      question,
-      chat_history: history || [],
-    });
+    // Create prompt
+    const prompt = `You are a helpful assistant for SIP (Systematic Investment Plan) products. 
+    Use the following knowledge base to answer the question at the end.
+    If you don't know the answer, just say that you don't know, don't try to make up an answer.
+    
+    Knowledge Base:
+    ${context}
+    
+    Chat History:
+    ${history ? history.map(h => `${h.role}: ${h.content}`).join('\n') : 'None'}
+    
+    Question: ${question}
+    
+    Helpful Answer:`;
+
+    // Get response from OpenAI
+    const response = await model.invoke(prompt);
 
     return res.status(200).json({ answer: response });
   } catch (error) {
@@ -97,4 +71,4 @@ const handler = async (req, res) => {
   }
 };
 
-export default handler;
+module.exports = handler;

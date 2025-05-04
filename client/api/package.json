@@ -2,9 +2,9 @@
   "name": "sip-chat-api",
   "version": "1.0.0",
   "private": true,
+  "type": "commonjs",
   "dependencies": {
     "@langchain/openai": "^0.0.20",
-    "@langchain/community": "^0.0.10",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7"
   }
