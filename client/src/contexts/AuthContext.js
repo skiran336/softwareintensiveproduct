@@ -121,23 +121,24 @@ export function AuthProvider({ children }) {
 
   // Sign in with email and password
   const signIn = async ({ email, password, token }) => {
+    let captchaData; // Declare variable outside try block
     try {
       // Verify hCaptcha
       const verification = await fetch(
-        `${SUPABASE_URL}/functions/v1/verify-captcha`, // Dynamic URL
+        `${SUPABASE_URL}/functions/v1/verify-captcha`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}` // Use env variable
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
           },
           body: JSON.stringify({ token })
         }
       );
   
-      const captchaData = await verification.json();
+      captchaData = await verification.json();
       
-      if (!captchaData.success) {
+      if (!captchaData?.success) {
         throw new Error('CAPTCHA verification failed');
       }
   
@@ -152,7 +153,7 @@ export function AuthProvider({ children }) {
     } catch (error) {
       console.error('Login error:', {
         error: error.message,
-        captchaResponse: captchaData // Add this for debugging
+        captchaResponse: captchaData || 'No response' // Handle undefined case
       });
       throw error;
     }
