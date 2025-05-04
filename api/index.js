@@ -1,57 +1,27 @@
-const express = require('express');
-const cors = require('cors');
 const { OpenAI } = require('openai');
-const fs = require('fs').promises;
-const path = require('path');
-
-const app = express();
-app.use(cors());
-app.use(express.json());
+const cors = require('cors');
 
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
 
-// Initialize knowledge base
-let knowledgeBase = null;
+const handler = async (req, res) => {
+  // Enable CORS
+  cors()(req, res, () => {});
 
-const initializeKnowledgeBase = async () => {
-  if (!knowledgeBase) {
-    try {
-      const sipData = await fs.readFile(
-        path.join(__dirname, 'sip_data.txt'),
-        'utf-8'
-      );
-      knowledgeBase = sipData.split('\n').filter(text => text.trim());
-    } catch (error) {
-      console.error('Error initializing knowledge base:', error);
-      throw error;
-    }
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
-  return knowledgeBase;
-};
 
-app.post('/chat', async (req, res) => {
   try {
     const { question, history } = req.body;
-
-    // Initialize knowledge base
-    const kb = await initializeKnowledgeBase();
-
-    // Create context from knowledge base
-    const context = kb.join('\n');
 
     // Create messages array
     const messages = [
       {
         role: 'system',
-        content: `You are a helpful assistant for SIP (Systematic Investment Plan) products. 
-        Use the following knowledge base to answer questions.
-        If you don't know the answer, just say that you don't know, don't try to make up an answer.
-        
-        Knowledge Base:
-        ${context}`
+        content: 'You are a helpful assistant for SIP (Systematic Investment Plan) products. If you don\'t know the answer, just say that you don\'t know, don\'t try to make up an answer.'
       },
       ...(history || []),
       { role: 'user', content: question }
@@ -72,9 +42,6 @@ app.post('/chat', async (req, res) => {
     console.error('Error in chat API:', error);
     return res.status(500).json({ error: 'Internal server error' });
   }
-});
+};
 
-const port = process.env.PORT || 3001;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-}); 
+module.exports = handler; 
