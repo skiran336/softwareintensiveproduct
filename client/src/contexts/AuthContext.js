@@ -121,28 +121,18 @@ export function AuthProvider({ children }) {
 
   // Sign in with email and password
   const signIn = async ({ email, password, token }) => {
-    let captchaData; // Declare variable outside try block
     try {
       // Verify hCaptcha
-      const verification = await fetch(
-        `${SUPABASE_URL}/functions/v1/verify-captcha`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-          },
-          body: JSON.stringify({ token })
-        }
-      );
+      const { data: captchaData, error: captchaError } = 
+        await supabase.functions.invoke('verify-captcha', {
+          body: { token }
+        });
   
-      captchaData = await verification.json();
-      
-      if (!captchaData?.success) {
+      if (captchaError || !captchaData?.success) {
         throw new Error('CAPTCHA verification failed');
       }
   
-      // Proceed with Supabase auth
+      // Proceed with auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -150,11 +140,9 @@ export function AuthProvider({ children }) {
   
       if (error) throw error;
       return data;
+      
     } catch (error) {
-      console.error('Login error:', {
-        error: error.message,
-        captchaResponse: captchaData || 'No response' // Handle undefined case
-      });
+      console.error('Login error:', error.message);
       throw error;
     }
   };
