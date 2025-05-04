@@ -122,15 +122,23 @@ export function AuthProvider({ children }) {
   // Sign in with email and password
   const signIn = async ({ email, password, token }) => {
     try {
-      // Verify hCaptcha
-      const { data: captchaData, error: captchaError } = 
-        await supabase.functions.invoke('verify-captcha', {
-          body: { token }
-        });
+      const verification = await fetch(
+        `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/verify-captcha`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`
+          },
+          body: JSON.stringify({ token })
+        }
+      );
   
-      if (captchaError || !captchaData?.success) {
-        throw new Error('CAPTCHA verification failed');
+      if (!verification.ok) {
+        const errorData = await verification.json();
+        throw new Error(errorData.error || 'Captcha verification failed');
       }
+  
   
       // Proceed with auth
       const { data, error } = await supabase.auth.signInWithPassword({
