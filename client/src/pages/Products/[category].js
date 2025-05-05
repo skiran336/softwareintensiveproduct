@@ -1,7 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../services/supabaseClient';
-import CategoryKnowledge from '../../components/CategoryKnoweldge/CategoryKnoweldge';
 import Header from '../../components/Header/Header';
 import Footer from '../../components/Footer/Footer';
 import '../../styles/category.css';
