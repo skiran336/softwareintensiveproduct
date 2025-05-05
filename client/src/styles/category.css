@@ -1,166 +1,229 @@
-/* ---------- Category Page Layout ---------- */
+/* ---------- Category Page ---------- */
 .category-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
-  
-  /* ---------- Breadcrumb ---------- */
-  .breadcrumb {
-    font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 1rem;
-  }
-  
-  /* ---------- Page Title ---------- */
-  .category-page-title {
-    color: #2c3e50;
-    margin-bottom: 2rem;
-    font-size: 2.5rem;
-    text-align: center;
-  }
-  
-  /* ---------- Products Grid ---------- */
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.category-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--background);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  padding: 1rem;
+}
+
+/* ---------- Header ---------- */
+.category-header {
+  text-align: center;
+  color: #08637f;
+  font-size: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #087f5b;
+}
+
+/* ---------- Products Grid ---------- */
+.products-section h2 {
+  margin-top: 3rem;
+  color: #08637f;
+  font-size: 1.6rem;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.product-card {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+}
+
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #343a40;
+}
+
+.product-title {
+  color: #08637f;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.product-description {
+  color: #6c757d;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.product-meta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: #087f5b;
+}
+
+/* ---------- Category Stats ---------- */
+.category-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.stat-card {
+  background: #ffffff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.stat-value {
+  color: #087f5b;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.stat-label {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+/* ---------- Video Section ---------- */
+.video-section {
+  margin: 3rem 0;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.video-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.video-player {
+  width: 100%;
+  height: 200px;
+  border: none;
+}
+
+.video-content {
+  padding: 1rem;
+}
+
+.video-title {
+  color: #08637f;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+/* ---------- Loading States ---------- */
+.loading-state {
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2rem;
+  color: #08637f;
+}
+
+.tab-section {
+  margin: 3rem auto;
+  max-width: 800px;
+  padding: 0 1rem;
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.tab-buttons button {
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  background: #e0f2fe;
+  color: #08637f;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.tab-buttons button.active {
+  background: #08637f;
+  color: white;
+  font-weight: bold;
+}
+
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tab-card {
+  background: #f1f5f9;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tab-card h4 {
+  margin-bottom: 0.3rem;
+  color: #0d6efd;
+}
+
+.tab-card small {
+  display: block;
+  margin-top: 0.5rem;
+  color: #6c757d;
+}
+
+/* ---------- Responsive Design ---------- */
+@media (max-width: 768px) {
   .products-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);  /* 4 cards per row */
-    gap: 2rem;
-    margin-bottom: 4rem;
+    grid-template-columns: 1fr;
   }
-  
-  /* ---------- Responsive Grid ---------- */
-  @media (max-width: 1200px) {
-    .products-grid {
-      grid-template-columns: repeat(3, 1fr);
-    }
+
+  .category-stats {
+    grid-template-columns: 1fr;
   }
-  
-  @media (max-width: 900px) {
-    .products-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+}
+
+@media (max-width: 480px) {
+  .category-page {
+    padding: 1rem 0.5rem;
   }
-  
-  @media (max-width: 600px) {
-    .products-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-  
-  /* ---------- Product Card ---------- */
-  .product-card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    overflow: hidden;
-    transition: transform 0.2s;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  
-  .product-card:hover {
-    transform: translateY(-5px);
-  }
-  
-  /* If you use images in future */
-  .product-image {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-bottom: 3px solid #3498db;
-  }
-  
-  .product-info {
-    padding: 1.5rem;
-  }
-  
-  .product-description {
-    color: #666;
-    font-size: 0.9rem;
-    margin: 0.5rem 0;
-    min-height: 60px;
-  }
-  
+
   .product-meta {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    color: #7f8c8d;
-    margin-top: 1rem;
-  }
-  
-  /* ---------- Loading State ---------- */
-  .loading {
-    text-align: center;
-    font-size: 1.2rem;
-    padding: 2rem;
-    color: #3498db;
-  }
-  
-  .loading-container {
-    display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-    text-align: center;
+    gap: 0.5rem;
   }
-  
-  .loading-spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin-bottom: 1rem;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  /* ---------- Error State ---------- */
-  .error-container {
-    text-align: center;
-    padding: 2rem;
-    color: #dc3545;
-    font-size: 1.1rem;
-  }
-  
-  /* ---------- Empty State ---------- */
-  .empty-state {
-    text-align: center;
-    padding: 2rem;
-    color: #555;
-  }
-  
-  .empty-state img {
-    width: 200px;
-    margin-bottom: 1rem;
-    opacity: 0.8;
-  }
-  
-  .loading-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-  }
-  
-  .error-container {
-    text-align: center;
-    padding: 2rem;
-    color: #dc3545;
-  }
-  
-  .retry-button {
-    margin-top: 1rem;
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-  }
+}

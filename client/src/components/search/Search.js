@@ -1,3 +1,4 @@
+// Full-featured Search Component with extended dataset columns using common CSS class
 import { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { toggleFavorite, fetchUserFavorites } from '../../services/favorites';
@@ -12,7 +13,6 @@ const Search = ({ onSearch }) => {
   const [hasSearched, setHasSearched] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState([]);
 
-  // Fetch favorites and setup auth listener
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event) => {
@@ -34,7 +34,6 @@ const Search = ({ onSearch }) => {
         setFavoriteIds([]);
         return;
       }
-      
       const favorites = await fetchUserFavorites(user.id);
       setFavoriteIds(favorites);
     } catch (error) {
@@ -42,7 +41,6 @@ const Search = ({ onSearch }) => {
     }
   };
 
-  // Debounced search suggestions
   useEffect(() => {
     if (searchTerm.trim().length < 2) {
       setSuggestions([]);
@@ -54,11 +52,7 @@ const Search = ({ onSearch }) => {
         const { data, error } = await supabase
           .from('products')
           .select('id, name, category, manufacturer')
-          .or(
-            `name.ilike.%${searchTerm}%`,
-            `category.ilike.%${searchTerm}%`,
-            `manufacturer.ilike.%${searchTerm}%`
-          )
+          .or(`name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,manufacturer.ilike.%${searchTerm}%`)
           .limit(5);
 
         if (error) throw error;
@@ -90,15 +84,25 @@ const Search = ({ onSearch }) => {
           name,
           category,
           manufacturer,
-          versions,
-          operating_systems
+          model_version,
+          year_released,
+          embedded_os,
+          software_platform,
+          connectivity,
+          key_hardware_components,
+          ai_ml_features,
+          ota_update_support,
+          open_source_used,
+          power_source,
+          retail_price_usd,
+          dependencies,
+          safety_compliance_certifications,
+          official_product_url,
+          app_ecosystem,
+          third_party_review_link,
+          market_region
         `)
-        .or(
-          `name.ilike.%${searchTerm}%`,
-          `category.ilike.%${searchTerm}%`,
-          `manufacturer.ilike.%${searchTerm}%`,
-          `operating_systems.ilike.%${searchTerm}%`
-        );
+        .or(`name.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,manufacturer.ilike.%${searchTerm}%,embedded_os.ilike.%${searchTerm}%`);
 
       if (error) throw error;
       setResults(data || []);
@@ -122,18 +126,12 @@ const Search = ({ onSearch }) => {
     try {
       const { error } = await toggleFavorite(productId);
       if (error) throw error;
-
-      // Optimistic UI update
-      setFavoriteIds(prev => {
-        const newFavorites = prev.includes(productId)
+      setFavoriteIds(prev =>
+        prev.includes(productId)
           ? prev.filter(id => id !== productId)
-          : [...prev, productId];
-        return newFavorites;
-      });
-
-      // Sync with database
+          : [...prev, productId]
+      );
       await updateFavorites();
-
     } catch (error) {
       console.error('Favorite error:', error);
       setError(error.message || 'Failed to update favorite');
@@ -142,9 +140,7 @@ const Search = ({ onSearch }) => {
 
   return (
     <div className="search-container">
-      <h1 className="search-heading">
-        Software Intensive Product Search
-      </h1>
+      <h1 className="search-heading">Software Intensive Product Search</h1>
       <div className="search-input-group">
         <input
           type="text"
@@ -160,10 +156,7 @@ const Search = ({ onSearch }) => {
         {suggestions.length > 0 && (
           <ul className="suggestions-dropdown">
             {suggestions.map(product => (
-              <li 
-                key={product.id}
-                onClick={() => handleSuggestionClick(product)}
-              >
+              <li key={product.id} onClick={() => handleSuggestionClick(product)}>
                 {product.name} <span className="suggestion-category">({product.category})</span>
               </li>
             ))}
@@ -178,36 +171,34 @@ const Search = ({ onSearch }) => {
           <div key={product.id} className="product-card">
             <div className="card-header">
               <h3>{product.name}</h3>
-              <button 
+              <button
                 onClick={() => handleFavorite(product.id)}
-                className={`favorite-btn ${
-                  favoriteIds.includes(product.id) ? 'favorited' : ''
-                }`}
-                aria-label={favoriteIds.includes(product.id) 
-                  ? "Remove from favorites" 
-                  : "Add to favorites"
-                }
+                className={`favorite-btn ${favoriteIds.includes(product.id) ? 'favorited' : ''}`}
+                aria-label={favoriteIds.includes(product.id) ? "Remove from favorites" : "Add to favorites"}
               >
                 {favoriteIds.includes(product.id) ? '★' : '☆'}
               </button>
             </div>
             <div className="product-meta">
-              <span className="category">Category: {product.category}</span>
-              <span className="manufacturer">Manufacturer: {product.manufacturer}</span>
-              <span className="version">
-                Versions: {
-                  (Array.isArray(product.versions) && product.versions.length > 0)
-                    ? product.versions.join(', ')
-                    : 'N/A'
-                }
-              </span>
-              <span className="os">
-                OS: {
-                  (Array.isArray(product.operating_systems) && product.operating_systems.length > 0)
-                    ? product.operating_systems.join(', ')
-                    : 'N/A'
-                }
-              </span>
+              <span className="meta-field">Category: {product.category}</span>
+              <span className="meta-field">Manufacturer: {product.manufacturer}</span>
+              <span className="meta-field">Model/Version: {product.model_version || 'N/A'}</span>
+              <span className="meta-field">Year Released: {product.year_released || 'N/A'}</span>
+              <span className="meta-field">Embedded OS: {product.embedded_os || 'N/A'}</span>
+              <span className="meta-field">Software Platform: {product.software_platform || 'N/A'}</span>
+              <span className="meta-field">Connectivity: {product.connectivity || 'N/A'}</span>
+              <span className="meta-field">Hardware: {product.key_hardware_components || 'N/A'}</span>
+              <span className="meta-field">AI/ML: {product.ai_ml_features || 'N/A'}</span>
+              <span className="meta-field">OTA Support: {product.ota_update_support || 'N/A'}</span>
+              <span className="meta-field">Open Source: {product.open_source_used || 'N/A'}</span>
+              <span className="meta-field">Power Source: {product.power_source || 'N/A'}</span>
+              <span className="meta-field">Price: ${product.retail_price_usd || 'N/A'}</span>
+              <span className="meta-field">Dependencies: {product.dependencies || 'N/A'}</span>
+              <span className="meta-field">Certifications: {product.safety_compliance_certifications || 'N/A'}</span>
+              <span className="meta-field">Product URL: <a href={product.official_product_url} target="_blank" rel="noreferrer">Link</a></span>
+              <span className="meta-field">App Ecosystem: {product.app_ecosystem || 'N/A'}</span>
+              <span className="meta-field">Review: <a href={product.third_party_review_link} target="_blank" rel="noreferrer">Read</a></span>
+              <span className="meta-field">Region: {product.market_region || 'N/A'}</span>
             </div>
           </div>
         ))}

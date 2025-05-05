@@ -12,9 +12,8 @@ const Favorites = () => {
 
   useEffect(() => {
     const fetchFavorites = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
         navigate('/login');
         return;
       }
@@ -27,8 +26,23 @@ const Favorites = () => {
             name,
             category,
             manufacturer,
-            versions,
-            operating_systems
+            model_version,
+            year_released,
+            embedded_os,
+            software_platform,
+            connectivity,
+            key_hardware_components,
+            ai_ml_features,
+            ota_update_support,
+            open_source_used,
+            power_source,
+            retail_price_usd,
+            dependencies,
+            safety_compliance_certifications,
+            official_product_url,
+            app_ecosystem,
+            third_party_review_link,
+            market_region
           )
         `)
         .eq('user_id', user.id);
@@ -37,7 +51,7 @@ const Favorites = () => {
         console.error('Fetch error:', error);
         return;
       }
-      
+
       setFavorites(data.map(item => item.product));
       setLoading(false);
     };
@@ -47,18 +61,15 @@ const Favorites = () => {
 
   const handleRemove = async (productId) => {
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     try {
       const { error } = await supabase
         .from('favorites')
         .delete()
-        .match({
-          user_id: user.id,
-          product_id: productId
-        });
+        .match({ user_id: user.id, product_id: productId });
 
       if (error) throw error;
-      
+
       setFavorites(prev => prev.filter(p => p.id !== productId));
     } catch (error) {
       console.error('Delete error:', error);
@@ -79,13 +90,25 @@ const Favorites = () => {
             {favorites.map(product => (
               <div key={product.id} className="favorite-item">
                 <h3>{product.name}</h3>
-                <p>Category: {product.category}</p>
-                <p>Manufacturer: {product.manufacturer}</p>
-                <button 
+                <p className="meta-field">Category: {product.category}</p>
+                <p className="meta-field">Manufacturer: {product.manufacturer}</p>
+                <p className="meta-field">Model/Version: {product.model_version}</p>
+                <p className="meta-field">Year Released: {product.year_released}</p>
+                <p className="meta-field">OS: {product.embedded_os}</p>
+                <p className="meta-field">Retail Price: ${product.retail_price_usd}</p>
+                <a
+                  href={product.official_product_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="meta-field"
+                >
+                  View Product ↗
+                </a>
+                <button
                   onClick={() => handleRemove(product.id)}
                   className="remove-btn"
                 >
-                  Remove
+                  Remove from Favorites
                 </button>
               </div>
             ))}

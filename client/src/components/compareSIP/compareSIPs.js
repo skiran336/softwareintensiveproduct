@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import '../../styles/Compare.css';
@@ -12,7 +11,6 @@ const Compare = () => {
 
   const fetchSuggestions = useCallback(async (index) => {
     if (skipFetchRef.current[index]) return;
-
     const term = searchTerms[index];
     if (term.trim().length < 2) {
       const newSuggestions = [...suggestions];
@@ -24,12 +22,8 @@ const Compare = () => {
     try {
       const { data, error: sbError } = await supabase
         .from('products')
-        .select('id, name, category')
-        .or(
-          `name.ilike.%${term}%,` +
-          `category.ilike.%${term}%,` +
-          `manufacturer.ilike.%${term}%`
-        )
+        .select('id, name, category, manufacturer')
+        .or(`name.ilike.%${term}%,category.ilike.%${term}%,manufacturer.ilike.%${term}%`)
         .limit(5);
 
       if (sbError) throw sbError;
@@ -50,24 +44,37 @@ const Compare = () => {
     return () => debounceTimers.forEach(timer => clearTimeout(timer));
   }, [searchTerms, fetchSuggestions]);
 
-  const handleSelectProduct = (index, product) => {
-    const newSelection = [...selectedProducts];
-    newSelection[index] = product;
-    setSelectedProducts(newSelection);
+  const fetchProductDetails = async (id) => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .single();
 
-    const newTerms = [...searchTerms];
-    newTerms[index] = product.name;
-    setSearchTerms(newTerms);
+    if (error) throw error;
+    return data;
+  };
 
-    const newSuggestions = [...suggestions];
-    newSuggestions[index] = [];
-    setSuggestions(newSuggestions);
+  const handleSelectProduct = async (index, product) => {
+    try {
+      const fullProduct = await fetchProductDetails(product.id);
+      const newSelection = [...selectedProducts];
+      newSelection[index] = fullProduct;
+      setSelectedProducts(newSelection);
 
-    skipFetchRef.current[index] = true;
+      const newTerms = [...searchTerms];
+      newTerms[index] = fullProduct.name;
+      setSearchTerms(newTerms);
 
-    setTimeout(() => {
-      skipFetchRef.current[index] = false;
-    }, 500);
+      const newSuggestions = [...suggestions];
+      newSuggestions[index] = [];
+      setSuggestions(newSuggestions);
+
+      skipFetchRef.current[index] = true;
+      setTimeout(() => { skipFetchRef.current[index] = false; }, 500);
+    } catch (error) {
+      console.error('Error selecting product:', error);
+    }
   };
 
   const handleReset = () => {
@@ -78,11 +85,31 @@ const Compare = () => {
     setError('');
   };
 
+  const columnLabels = {
+    name: 'Name',
+    category: 'Category',
+    manufacturer: 'Manufacturer',
+    model_version: 'Model/Version',
+    year_released: 'Year Released',
+    embedded_os: 'Embedded OS',
+    software_platform: 'Software Platform',
+    connectivity: 'Connectivity',
+    key_hardware_components: 'Hardware Components',
+    ai_ml_features: 'AI/ML Features',
+    ota_update_support: 'OTA Support',
+    open_source_used: 'Open Source Used',
+    power_source: 'Power Source',
+    retail_price_usd: 'Price (USD)',
+    dependencies: 'Dependencies',
+    safety_compliance_certifications: 'Certifications',
+    official_product_url: 'Product URL',
+    app_ecosystem: 'App Ecosystem',
+    third_party_review_link: 'Review Link',
+    market_region: 'Region',
+  };
+
   const renderComparison = () => {
     if (!selectedProducts[0] || !selectedProducts[1]) return null;
-
-    const labels = ['Name', 'Category', 'Manufacturer', 'Versions', 'Operating Systems'];
-    const keys = ['name', 'category', 'manufacturer', 'versions', 'operatingSystems'];
 
     return (
       <div className="comparison-wrapper">
@@ -91,14 +118,14 @@ const Compare = () => {
           <div className="product-column">{selectedProducts[0]?.name}</div>
           <div className="product-column">{selectedProducts[1]?.name}</div>
         </div>
-        {keys.map((key, idx) => (
+        {Object.keys(columnLabels).map((key, idx) => (
           <div className="comparison-row" key={idx}>
-            <div className="feature-column">{labels[idx]}</div>
+            <div className="feature-column">{columnLabels[key]}</div>
             <div className={`product-column ${selectedProducts[0][key] !== selectedProducts[1][key] ? 'diff' : ''}`}>
-              {selectedProducts[0][key]}
+              {selectedProducts[0][key] || 'N/A'}
             </div>
             <div className={`product-column ${selectedProducts[0][key] !== selectedProducts[1][key] ? 'diff' : ''}`}>
-              {selectedProducts[1][key]}
+              {selectedProducts[1][key] || 'N/A'}
             </div>
           </div>
         ))}
@@ -125,20 +152,11 @@ const Compare = () => {
                   newTerms[index] = e.target.value;
                   setSearchTerms(newTerms);
                 }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    const newSuggestions = [...suggestions];
-                    newSuggestions[index] = [];
-                    setSuggestions(newSuggestions);
-                    skipFetchRef.current[index] = true;
-                    setTimeout(() => { skipFetchRef.current[index] = false; }, 500);
-                  }
-                }}
               />
               {suggestions[index].length > 0 && !selectedProducts[index] && (
                 <ul className="suggestions-dropdown">
                   {suggestions[index].map(product => (
-                    <li key={product.Id} onClick={() => handleSelectProduct(index, product)}>
+                    <li key={product.id} onClick={() => handleSelectProduct(index, product)}>
                       {product.name} <span className="suggestion-category">({product.category})</span>
                     </li>
                   ))}

@@ -1,10 +1,7 @@
-// src/contexts/AuthContext.js
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '../services/supabaseClient';
 
 const AuthContext = createContext();
-const SUPABASE_URL = process.env.REACT_APP_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.REACT_APP_SUPABASE_ANON_KEY;
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -77,7 +74,6 @@ export function AuthProvider({ children }) {
     setError(null);
   
     try {
-      // 1. Create auth user with metadata
       const { data: { user }, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -91,10 +87,6 @@ export function AuthProvider({ children }) {
       });
   
       if (authError) throw authError;
-  
-      // 2. Let the database trigger create the profile
-      // No need for manual profile insertion
-  
       return user;
   
     } catch (error) {
@@ -119,39 +111,25 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Sign in with email and password
-  const signIn = async ({ email, password, token }) => {
+  // Sign in with email and password (captcha removed)
+  const signIn = async ({ email, password }) => {
     try {
-      const verification = await fetch(
-        `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/verify-captcha`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`
-          },
-          body: JSON.stringify({ token })
-        }
-      );
-  
-      if (!verification.ok) {
-        const errorData = await verification.json();
-        throw new Error(errorData.error || 'Captcha verification failed');
-      }
-  
-  
-      // Proceed with auth
+      setLoading(true);
+      setError(null);
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-  
+
       if (error) throw error;
       return data;
       
     } catch (error) {
       console.error('Login error:', error.message);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 

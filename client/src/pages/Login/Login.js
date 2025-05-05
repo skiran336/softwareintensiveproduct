@@ -1,8 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { FiLogIn, FiLoader, FiEye, FiEyeOff } from 'react-icons/fi';
-import HCaptcha from '@hcaptcha/react-hcaptcha';
 import '../../styles/Login.css';
 
 export default function Login() {
@@ -10,32 +9,20 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const { signIn, loading, error } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [token, setToken] = useState(null);
-  const captchaRef = useRef(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!token) {
-      alert('Please complete the captcha');
-      return;
-    }
     try {
-      await signIn({ email, password, token });
+      await signIn({ email, password });
       navigate('/home');
     } catch (error) {
       console.error('Login failed:', error);
-      captchaRef.current.resetCaptcha();
-      setToken(null);
     }
   };
-  
+
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  };
-
-  const onVerify = (token) => {
-    setToken(token);
   };
 
   return (
@@ -88,17 +75,9 @@ export default function Login() {
             </button>
           </div>
 
-          <div className="captcha-container">
-            <HCaptcha
-              sitekey={process.env.REACT_APP_HCAPTCHA_SITE_KEY}
-              onVerify={onVerify}
-              ref={captchaRef}
-            />
-          </div>
-
           <button 
             type="submit" 
-            disabled={loading || !token}
+            disabled={loading}
             className={`login-button ${loading ? 'loading' : ''}`}
           >
             {loading ? (
