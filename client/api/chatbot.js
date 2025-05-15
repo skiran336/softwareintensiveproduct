@@ -1,67 +1,73 @@
-// File: api/chatbot.js (Vercel Serverless Function using OpenAI v4 SDK)
-const fs = require('fs');
-const path = require('path');
 const OpenAI = require('openai');
+const { createClient } = require('@supabase/supabase-js');
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-let knowledgeBase = [];
-
-function cosineSimilarity(a, b) {
-  const dot = a.reduce((sum, ai, i) => sum + ai * b[i], 0);
-  const normA = Math.sqrt(a.reduce((sum, ai) => sum + ai * ai, 0));
-  const normB = Math.sqrt(b.reduce((sum, bi) => sum + bi * bi, 0));
-  return dot / (normA * normB);
-}
-
-function loadKnowledgeBase() {
-  if (knowledgeBase.length > 0) return; // Already loaded
-  const filePath = path.join(__dirname, '..', 'public', 'docs', 'sip_embeddings.json');
-  const raw = fs.readFileSync(filePath, 'utf8');
-  knowledgeBase = JSON.parse(raw);
-}
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 module.exports = async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST allowed' });
 
   const { question } = req.body;
-  if (!question) {
-    return res.status(400).json({ error: 'Missing question' });
-  }
+  if (!question) return res.status(400).json({ error: 'Missing question' });
 
   try {
-    loadKnowledgeBase();
+    // Reuse your frontend search logic in the backend
+    const { data: products, error } = await supabase
+      .from('products')
+      .select(`
+        id,
+        name,
+        category,
+        manufacturer,
+        model_version,
+        year_released,
+        embedded_os,
+        software_platform,
+        connectivity,
+        key_hardware_components,
+        ai_ml_features,
+        ota_update_support,
+        open_source_used,
+        power_source,
+        retail_price_usd,
+        dependencies,
+        safety_compliance_certifications,
+        official_product_url,
+        app_ecosystem,
+        third_party_review_link,
+        market_region
+      `)
+      .or(`name.ilike.%${question}%,category.ilike.%${question}%,manufacturer.ilike.%${question}%,embedded_os.ilike.%${question}%`);
 
-    const embeddingResp = await openai.embeddings.create({
-      model: 'text-embedding-ada-002',
-      input: question
-    });
-    const qEmbedding = embeddingResp.data[0].embedding;
+    if (error) throw error;
 
-    const topChunks = knowledgeBase
-      .map(entry => ({
-        text: entry.text,
-        score: cosineSimilarity(entry.embedding, qEmbedding)
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, 3);
+    let formatted = 'No matching products found.';
+    if (products.length > 0) {
+      formatted = products.map(p => {
+        return `• ${p.name} (${p.category}) by ${p.manufacturer}, ${p.year_released}. OS: ${p.embedded_os || 'N/A'}, AI: ${p.ai_ml_features || 'None'}, Price: $${p.retail_price_usd || 'N/A'}`;
+      }).join('\n');
+    }
 
-    const context = topChunks.map(c => c.text).join('\n---\n');
-    const prompt = `Use the following information to answer the question.\n\n${context}\n\nQ: ${question}\nA:`;
+    const prompt = `User question: "${question}"\n\nRelevant products from the database:\n${formatted}\n\nNow generate a helpful, concise response for the user using this information.`;
 
-    const chatResp = await openai.chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: prompt }]
     });
 
-    res.status(200).json({
-      answer: chatResp.choices[0].message.content.trim(),
-      sources: topChunks.map((c, i) => ({ id: i + 1, content: c.text.slice(0, 200) + '...' }))
+    return res.status(200).json({
+      answer: response.choices[0].message.content.trim(),
+      references: products.map(p => ({
+        id: p.id,
+        text: `${p.name} - $${p.retail_price_usd}`
+      }))
     });
   } catch (err) {
-    console.error('Chatbot error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('Chatbot error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
