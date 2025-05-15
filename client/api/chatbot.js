@@ -1,10 +1,9 @@
-// File: api/chatbot.js (Vercel Serverless Function)
-import fs from 'fs';
-import path from 'path';
-import { Configuration, OpenAIApi } from 'openai';
+// File: api/chatbot.js (Vercel Serverless Function using OpenAI v4 SDK)
+const fs = require('fs');
+const path = require('path');
+const OpenAI = require('openai');
 
-const config = new Configuration({ apiKey: process.env.OPENAI_API_KEY });
-const openai = new OpenAIApi(config);
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 let knowledgeBase = [];
 
@@ -17,12 +16,12 @@ function cosineSimilarity(a, b) {
 
 function loadKnowledgeBase() {
   if (knowledgeBase.length > 0) return; // Already loaded
-  const filePath = path.join(process.cwd(), 'public', 'docs', 'sip_embeddings.json');
+  const filePath = path.join(__dirname, '..', 'public', 'docs', 'sip_embeddings.json');
   const raw = fs.readFileSync(filePath, 'utf8');
   knowledgeBase = JSON.parse(raw);
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
@@ -35,11 +34,11 @@ export default async function handler(req, res) {
   try {
     loadKnowledgeBase();
 
-    const embeddingResp = await openai.createEmbedding({
+    const embeddingResp = await openai.embeddings.create({
       model: 'text-embedding-ada-002',
       input: question
     });
-    const qEmbedding = embeddingResp.data.data[0].embedding;
+    const qEmbedding = embeddingResp.data[0].embedding;
 
     const topChunks = knowledgeBase
       .map(entry => ({
@@ -52,17 +51,17 @@ export default async function handler(req, res) {
     const context = topChunks.map(c => c.text).join('\n---\n');
     const prompt = `Use the following information to answer the question.\n\n${context}\n\nQ: ${question}\nA:`;
 
-    const chatResp = await openai.createChatCompletion({
+    const chatResp = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [{ role: 'user', content: prompt }]
     });
 
     res.status(200).json({
-      answer: chatResp.data.choices[0].message.content.trim(),
+      answer: chatResp.choices[0].message.content.trim(),
       sources: topChunks.map((c, i) => ({ id: i + 1, content: c.text.slice(0, 200) + '...' }))
     });
   } catch (err) {
     console.error('Chatbot error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
-}
+};
