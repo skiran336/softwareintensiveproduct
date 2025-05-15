@@ -1,0 +1,10 @@
+{
+    "functions": {
+      "api/chatbot.js": {
+        "includeFiles": [
+          "node_modules/@langchain/openai/**/*",
+          "node_modules/@langchain/core/**/*"
+        ]
+      }
+    }
+  }
