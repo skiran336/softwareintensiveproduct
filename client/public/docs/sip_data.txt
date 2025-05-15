@@ -6,3 +6,61 @@ Ubuntu Core is a minimal, containerized version of Ubuntu designed for IoT devic
 
 ### OSS Libraries in Census II
 According to Census II, the most widely used OSS libraries include OpenSSL, zlib, and libcurl.
+
+### QNX (BlackBerry QNX)
+QNX is a commercial real-time operating system with a microkernel architecture. It isolates applications and drivers in separate address spaces, which enhances fault isolation. It supports multiple processor architectures and is commonly used in safety-critical systems like automotive dashboards, medical equipment, and industrial control systems. QNX OS for Safety is pre-certified for ISO 26262, making it suitable for automotive functional safety requirements.
+
+### VxWorks (Wind River)
+VxWorks is a proprietary real-time operating system used in aerospace, defense, and industrial automation. Known for its deterministic response time and high reliability, it runs on a wide range of processors and supports advanced memory management, network stacks, and file systems. VxWorks has been used in NASA's Mars rovers and various avionics systems.
+
+### Zephyr Project
+Zephyr is an open-source RTOS under the Linux Foundation that targets low-resource devices like microcontrollers. It supports multiple architectures including ARM, x86, and RISC-V. Its modularity and permissive licensing make it popular for embedded wearables, sensors, and IoT applications.
+
+### Amazon FreeRTOS
+Amazon FreeRTOS builds on the FreeRTOS kernel by adding libraries for cloud connectivity, security, and OTA updates. It’s designed for low-power microcontroller-based edge devices that communicate with AWS services.
+
+### Embedded Linux
+Embedded Linux is used in more capable devices that require rich user interfaces and networking. Custom distributions are often built using Yocto or Buildroot. Automotive systems, smart TVs, and industrial gateways frequently use embedded Linux. Tesla vehicles, for example, use a custom embedded Linux OS.
+
+### libcurl
+libcurl is an open-source client-side URL transfer library supporting a wide range of protocols including HTTP, FTP, and MQTT. It is often used in embedded devices for making API calls, handling OTA updates, and enabling remote communication.
+
+### MQTT
+MQTT is a lightweight messaging protocol optimized for constrained devices and low-bandwidth networks. It uses a publish/subscribe model and is commonly employed in smart homes, industrial sensors, and mobile-connected devices.
+
+### TensorFlow Lite for Microcontrollers
+TFLite Micro enables running machine learning models directly on microcontrollers without operating systems. It supports audio, image, and signal classification and is often used in predictive maintenance and voice control systems.
+
+### ISO 26262
+An automotive functional safety standard that defines the lifecycle and validation criteria for electronic and electrical systems. It is essential for SIPs deployed in vehicles, including driver assistance and infotainment systems.
+
+### CE Marking
+Indicates that a product meets EU safety, health, and environmental protection standards. It is required for most electronic devices sold in the EU, including SIPs like smartwatches and home automation systems.
+
+### FCC Certification
+Required for any product emitting radiofrequency energy sold in the United States. This includes SIPs that use Bluetooth, Wi-Fi, or cellular communication.
+
+### OEKO-TEX Standard 100
+A certification ensuring that textiles and components are tested for harmful substances. Smart apparel and wearable electronics often require this standard for consumer safety and international trade.
+
+### Android Things
+Google’s IoT platform based on Android. Designed for smart displays and speakers, it enabled secure OTA updates and integration with Google services. Support ended in 2021 but it influenced modern smart device architecture.
+
+### Azure Sphere
+Microsoft's solution for securing IoT devices end-to-end, featuring a custom microcontroller, a Linux-based OS, and a cloud security service. It is used in industrial control and secure consumer appliances.
+
+### Amazon FreeRTOS (Extended)
+In addition to the FreeRTOS kernel, Amazon FreeRTOS includes libraries for MQTT, HTTP, and device shadow synchronization with AWS IoT Core. Devices using Amazon FreeRTOS can securely update and report metrics in real time.
+
+### AI at the Edge (AIoT)
+A growing trend in SIPs is embedding machine learning models to perform inference locally. Examples include smart thermostats recognizing occupancy patterns or predictive maintenance sensors analyzing vibration anomalies.
+
+### Security by Design
+Modern SIPs implement hardware root-of-trust and secure boot mechanisms. Azure Sphere and some ARM Cortex-M MCUs include hardware-based key storage and runtime integrity checking.
+
+### Open Source in SIPs
+From Zephyr to Automotive Grade Linux, open source is increasingly common in SIP development. It speeds up development and ensures community-tested components, but raises questions of license compliance and long-term maintenance.
+
+### Edge Compute & Connectivity
+With the rise of 5G and multi-core SoCs, SIPs can perform substantial processing at the edge. Examples include smart traffic lights, industrial vision systems, and home assistants with voice and image recognition capabilities.
+
