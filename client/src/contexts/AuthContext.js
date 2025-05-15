@@ -35,20 +35,19 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  // Initialize auth state
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         setLoading(true);
         const { data: { session }, error } = await supabase.auth.getSession();
+
         if (error) throw error;
 
         if (session) {
           setSession(session);
           setUser(session.user);
           await syncUserWithBackend(session.user);
-        } else {
-          setSession(null);
-          setUser(null);
         }
       } catch (error) {
         setError(error.message);
@@ -57,52 +56,39 @@ export function AuthProvider({ children }) {
       }
     };
 
-    // Initial session check
     initializeAuth();
 
-    // Supabase auth listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
-
-        if (newSession?.user) {
-          await syncUserWithBackend(newSession.user);
-        }
       }
     );
 
-    // Cross-tab session sync
-    const handleStorageChange = (event) => {
-      if (event.key === 'supabase.auth.token') {
-        initializeAuth();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    return () => {
-      subscription?.unsubscribe();
-      window.removeEventListener('storage', handleStorageChange);
-    };
+    return () => subscription?.unsubscribe();
   }, [syncUserWithBackend]);
 
-  const signUp = async ({ email, password, name, phone_number, profession }) => {
+  // Sign up with email and password
+  const signUp = async ({ email, password, name, phone_number, profession}) => {
     setLoading(true);
     setError(null);
-
+  
     try {
       const { data: { user }, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: { name, phone_number, profession }
+          data: {
+            name,
+            phone_number,
+            profession
+          }
         }
       });
-
+  
       if (authError) throw authError;
       return user;
-
+  
     } catch (error) {
       setError(error.message);
       throw error;
@@ -125,15 +111,20 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Sign in with email and password (captcha removed)
   const signIn = async ({ email, password }) => {
     try {
       setLoading(true);
       setError(null);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       return data;
-
+      
     } catch (error) {
       console.error('Login error:', error.message);
       throw error;
@@ -142,6 +133,7 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Sign out
   const signOut = async () => {
     try {
       setLoading(true);
