@@ -9,6 +9,7 @@ import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 let vectorStore = null;
 let sourceChunks = null;  // to hold the text chunks for reference (if needed)
 
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed. Use POST.' });
