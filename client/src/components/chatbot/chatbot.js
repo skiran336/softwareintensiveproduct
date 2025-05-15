@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import '../../styles/chatbot.css';
+import Header from '../../components/Header/Header';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([]);
@@ -44,6 +45,7 @@ const Chatbot = () => {
   };
 
   return (
+    <><Header />
     <div className="chatbot-container">
       <div className="chat-header">
         <h1>SIP Expert Assistant</h1>
@@ -90,6 +92,7 @@ const Chatbot = () => {
         </button>
       </form>
     </div>
+    </>
   );
 };
 
