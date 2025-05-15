@@ -1,106 +1,96 @@
-import { useState, useRef, useEffect } from 'react';
-import axios from 'axios';
-import '../../styles/chatbot.css';
-import Header from '../Header/Header';
+import React, { useState } from 'react';
+import '../../styles/chatbot.css'
 
-export default function ChatBot() {
-  const [input, setInput] = useState('');
-  const [messages, setMessages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+const Chatbot = () => {
+  const [messages, setMessages] = useState([]);      // Chat history: { sender: 'user'|'bot', text: string, references?: [] }
+  const [input, setInput] = useState('');            // Current user input
+  const [loading, setLoading] = useState(false);     // Loading indicator for bot response
+  const [error, setError] = useState(null);          // Error message, if any
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => scrollToBottom(), [messages]);
-
+  // Handle form submit to send question
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim()) return;
+    const question = input.trim();
 
-    setIsLoading(true);
-    const userMessage = { text: input, isBot: false };
-    
+    // Add the user's question to the chat
+    setMessages(prev => [...prev, { sender: 'user', text: question }]);
+    setInput('');
+    setLoading(true);
+    setError(null);
+
     try {
-      setMessages(prev => [...prev, userMessage]);
-      
-      const { data } = await axios.post('/api/chat', {
-        question: input,
-        history: messages.filter(m => m.isBot).map(m => m.text)
+      // Send POST request to our Vercel serverless function
+      const response = await fetch('/api/chatbot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question })
       });
-
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+      const data = await response.json();
+      // `data` is expected to have shape: { answer: string, references: [ {id: n, text: snippet}, ... ] }
       setMessages(prev => [
-        ...prev,
-        { 
-          text: data.answer, 
-          isBot: true,
-          sources: data.sources 
-        }
+        ...prev, 
+        { sender: 'bot', text: data.answer, references: data.references || [] }
       ]);
-      
-    } catch (error) {
+    } catch (err) {
+      console.error('Error querying chatbot API:', err);
+      setError('Sorry, something went wrong. Please try again.');
+      // Optionally, add an error message into chat
       setMessages(prev => [
-        ...prev,
-        { text: "Sorry, I'm having trouble connecting. Please try again later.", isBot: true }
+        ...prev, 
+        { sender: 'bot', text: "*(Error: failed to get answer)*", references: [] }
       ]);
     } finally {
-      setInput('');
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <>
-      <Header />
-      <div className="chatbot-container">
-        <div className="chat-header">
-          <h1> SIP Expert Assistant</h1>
-          <p>Ask me anything about Software Intensive Products</p>
-        </div>
-
-        <div className="chat-messages">
-          {messages.map((msg, i) => (
-            <div key={i} className={`message ${msg.isBot ? 'bot' : 'user'}`}>
-              <div className="message-content">
-                {msg.text}
-                {msg.sources && msg.sources.length > 0 && (
-                  <div className="sources">
-                    <div className="source-header">References:</div>
-                    {msg.sources.map((source, idx) => (
-                      <div key={idx} className="source-item">
-                        {source.content}
-                      </div>
-                    ))}
-                  </div>
-                )}
+    <div className="chatbot-container">
+      <div className="chat-window">
+        {messages.map((msg, idx) => (
+          <div 
+            key={idx} 
+            className={`message ${msg.sender === 'user' ? 'user-msg' : 'bot-msg'}`}
+          >
+            <p><strong>{msg.sender === 'user' ? 'You:' : 'Assistant:'}</strong> {msg.text}</p>
+            {/* Display references if present for bot messages */}
+            {msg.sender === 'bot' && msg.references && msg.references.length > 0 && (
+              <div className="references">
+                <strong>References:</strong>
+                <ul>
+                  {msg.references.map(ref => (
+                    <li key={ref.id}>{ref.text}</li>
+                  ))}
+                </ul>
               </div>
-            </div>
-          ))}
-          {isLoading && (
-            <div className="message bot loading">
-              <div className="loading-dots">
-                <span>.</span><span>.</span><span>.</span>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-
-        <form className="chat-input" onSubmit={handleSubmit}>
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your question about SIP..."
-            disabled={isLoading}
-            autoFocus
-          />
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? 'Thinking...' : 'Send'}
-          </button>
-        </form>
+            )}
+          </div>
+        ))}
+        {loading && (
+          <div className="message bot-msg typing">
+            <p><em>Assistant is typing...</em></p>
+          </div>
+        )}
       </div>
-    </>
+      {error && <div className="error">{error}</div>}
+      <form className="chat-form" onSubmit={handleSubmit}>
+        <input 
+          type="text" 
+          value={input} 
+          placeholder="Ask a question..." 
+          onChange={(e) => setInput(e.target.value)} 
+          disabled={loading}
+        />
+        <button type="submit" disabled={loading || !input.trim()}>
+          Send
+        </button>
+      </form>
+    </div>
   );
-}
+};
+
+export default Chatbot;
