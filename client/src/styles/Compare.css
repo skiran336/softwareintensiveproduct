@@ -161,11 +161,11 @@ button:hover {
     background-color: #0077cc;
     color: white;
     border: none;
-    padding: 10px 16px;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
     font-size: 1rem;
     margin-left: 1rem;
     cursor: pointer;
-    border-radius: 5px;
   }
   
   .export-btn:hover {
