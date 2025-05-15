@@ -5,6 +5,7 @@ import { OpenAIEmbeddings, ChatOpenAI } from '@langchain/openai';
 import { MemoryVectorStore } from 'langchain/vectorstores/memory';
 import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
 
+
 // Global cache for vector store and text data
 let vectorStore = null;
 let sourceChunks = null;  // to hold the text chunks for reference (if needed)
