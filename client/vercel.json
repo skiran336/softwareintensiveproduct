@@ -10,10 +10,7 @@
     ],
     "functions": {
       "api/chatbot.js": {
-        "includeFiles": [
-          "public/docs/sip_data.txt",
-          "node_modules/@langchain/**"
-        ]
+        "includeFiles": "public/docs/sip_data.txt"
       }
     }
   }
