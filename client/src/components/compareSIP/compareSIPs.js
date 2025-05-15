@@ -8,6 +8,7 @@ const Compare = () => {
   const [suggestions, setSuggestions] = useState([[], []]);
   const [error, setError] = useState('');
   const skipFetchRef = useRef([false, false]);
+  const comparisonRef = useRef(null); // For PDF export
 
   const fetchSuggestions = useCallback(async (index) => {
     if (skipFetchRef.current[index]) return;
@@ -85,6 +86,19 @@ const Compare = () => {
     setError('');
   };
 
+  const handleExportPDF = async () => {
+    if (!comparisonRef.current) return;
+    const html2pdf = await import('html2pdf.js');
+    const opt = {
+      margin: 0.5,
+      filename: `SIP_Comparison_${Date.now()}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf.default().set(opt).from(comparisonRef.current).save();
+  };
+
   const columnLabels = {
     name: 'Name',
     category: 'Category',
@@ -112,7 +126,7 @@ const Compare = () => {
     if (!selectedProducts[0] || !selectedProducts[1]) return null;
 
     return (
-      <div className="comparison-wrapper">
+      <div ref={comparisonRef} className="comparison-wrapper">
         <div className="comparison-header">
           <div className="feature-column">Feature</div>
           <div className="product-column">{selectedProducts[0]?.name}</div>
@@ -129,7 +143,10 @@ const Compare = () => {
             </div>
           </div>
         ))}
-        <button className="reset-btn" onClick={handleReset}>🔄 Reset Comparison</button>
+        <div className="button-group">
+          <button className="reset-btn" onClick={handleReset}>🔄 Reset Comparison</button>
+          <button className="export-btn" onClick={handleExportPDF}>📄 Export to PDF</button>
+        </div>
       </div>
     );
   };
